@@ -4,8 +4,8 @@
  */
 
 import React from 'react';
-import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Home, PawPrint, Stethoscope, Calendar, Sparkles, User } from 'lucide-react-native';
 import { MainTabParamList } from '../types/navigation';
 import colors from '../constants/colors';
 
@@ -43,7 +43,7 @@ export const MainTabNavigator: React.FC = () => {
         component={HomeScreen}
         options={{
           tabBarLabel: 'Home',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text>,
+          tabBarIcon: ({ color }) => <Home size={22} color={color} strokeWidth={2.2} />,
         }}
       />
       <Tab.Screen
@@ -51,7 +51,7 @@ export const MainTabNavigator: React.FC = () => {
         component={PetListScreen}
         options={{
           tabBarLabel: 'My Pets',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🐾</Text>,
+          tabBarIcon: ({ color }) => <PawPrint size={22} color={color} strokeWidth={2.2} />,
         }}
       />
       <Tab.Screen
@@ -59,7 +59,7 @@ export const MainTabNavigator: React.FC = () => {
         component={VetListScreen}
         options={{
           tabBarLabel: 'Veterinarians',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👨‍⚕️</Text>,
+          tabBarIcon: ({ color }) => <Stethoscope size={22} color={color} strokeWidth={2.2} />,
         }}
       />
       <Tab.Screen
@@ -67,7 +67,7 @@ export const MainTabNavigator: React.FC = () => {
         component={AppointmentListScreen}
         options={{
           tabBarLabel: 'Visits',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📅</Text>,
+          tabBarIcon: ({ color }) => <Calendar size={22} color={color} strokeWidth={2.2} />,
         }}
       />
       <Tab.Screen
@@ -75,7 +75,7 @@ export const MainTabNavigator: React.FC = () => {
         component={ServiceListScreen}
         options={{
           tabBarLabel: 'Services',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>✂️</Text>,
+          tabBarIcon: ({ color }) => <Sparkles size={22} color={color} strokeWidth={2.2} />,
         }}
       />
       <Tab.Screen
@@ -83,7 +83,7 @@ export const MainTabNavigator: React.FC = () => {
         component={ProfileScreen}
         options={{
           tabBarLabel: 'Profile',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text>,
+          tabBarIcon: ({ color }) => <User size={22} color={color} strokeWidth={2.2} />,
         }}
       />
     </Tab.Navigator>
