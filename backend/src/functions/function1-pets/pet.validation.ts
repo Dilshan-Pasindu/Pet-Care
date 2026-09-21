@@ -15,7 +15,12 @@ type ValidationMiddleware = ValidationChain | ((req: Request, res: Response, nex
 const handleValidationErrors = (req: Request, res: Response, next: NextFunction): void => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    sendError(res, 400, 'Validation failed.', errors.array().map((e) => ({ field: (e as { path: string }).path, message: e.msg as string })));
+    sendError(
+      res,
+      400,
+      'Validation failed.',
+      errors.array().map((e: any) => ({ field: e.path || '', message: e.msg || '' }))
+    );
     return;
   }
   next();
@@ -29,6 +34,7 @@ export const validateCreatePet: ValidationMiddleware[] = [
   body('dateOfBirth').optional().isISO8601().withMessage('Date of birth must be a valid date (YYYY-MM-DD)'),
   body('weight').optional().isFloat({ min: 0 }).withMessage('Weight must be a positive number (kg)'),
   body('description').optional().trim().isLength({ max: 500 }).withMessage('Description cannot exceed 500 characters'),
+  body('imageUrl').optional({ nullable: true }),
   handleValidationErrors,
 ];
 
@@ -39,5 +45,6 @@ export const validateUpdatePet: ValidationMiddleware[] = [
   body('dateOfBirth').optional().isISO8601().withMessage('Date of birth must be a valid date (YYYY-MM-DD)'),
   body('weight').optional().isFloat({ min: 0 }).withMessage('Weight must be a positive number (kg)'),
   body('description').optional().trim().isLength({ max: 500 }).withMessage('Description cannot exceed 500 characters'),
+  body('imageUrl').optional({ nullable: true }),
   handleValidationErrors,
 ];
