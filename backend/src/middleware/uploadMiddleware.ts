@@ -5,41 +5,37 @@
  * ─────────────────────────────────────────────────────────────
  *
  * Purpose:
- *   File upload middleware using Multer + Cloudinary.
- *   Supports image uploads for pets, vets, services, and users.
- *   Images stored on Cloudinary (not local filesystem).
- *
- * Note:
- *   multer-storage-cloudinary lacks official @types.
- *   We use a local type declaration to keep type safety without @ts-ignore.
+ *   File upload middleware using standard Multer disk storage.
+ *   Uploaded files are stored in the server's local 'uploads/' folder.
+ *   MongoDB stores ONLY the path/reference string (e.g. '/uploads/pet-123.jpg').
+ *   Images are completely optional: if no file is provided, req.file is undefined.
  * ─────────────────────────────────────────────────────────────
  */
 
-import multer, { FileFilterCallback, StorageEngine } from 'multer';
+import multer, { FileFilterCallback } from 'multer';
 import { Request } from 'express';
-import cloudinaryV2 from 'cloudinary';
-import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import path from 'path';
+import fs from 'fs';
 
-const cloudinary = cloudinaryV2.v2;
+// Ensure uploads directory exists
+const uploadDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
-// Configure Cloudinary credentials
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+// Local disk storage engine
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    cb(null, `file-${uniqueSuffix}${ext}`);
+  },
 });
 
-// Cloudinary storage configuration
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: 'petcare',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-    transformation: [{ width: 800, height: 800, crop: 'limit', quality: 'auto' }],
-  } as Record<string, unknown>,
-}) as StorageEngine;
-
-// File type filter
+// File type filter: accept only image formats
 const fileFilter = (
   _req: Request,
   file: Express.Multer.File,
@@ -57,14 +53,13 @@ const fileFilter = (
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
 });
 
 /**
- * Upload a single image file.
- * @param fieldName - The multipart form field name (e.g. 'image', 'profileImage')
+ * Upload a single image file optionally.
+ * If no file is attached, request continues normally with req.file = undefined.
+ * @param fieldName - The multipart form field name (e.g. 'image', 'photo')
  */
 export const uploadSingle = (fieldName: string): ReturnType<typeof upload.single> =>
   upload.single(fieldName);
-
-export { cloudinary };
