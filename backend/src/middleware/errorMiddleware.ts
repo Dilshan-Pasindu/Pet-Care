@@ -1,3 +1,4 @@
+/// <reference types="node" />
 /**
  * middleware/errorMiddleware.ts
  * ─────────────────────────────────────────────────────────────
@@ -83,9 +84,16 @@ export const errorHandler = (
     message = 'Token has expired. Please login again.';
   }
 
-  if (process.env.NODE_ENV === 'development') {
+  if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') {
     console.error('🔥 ERROR:', err);
   }
 
   res.status(statusCode).json({ success: false, message });
+};
+
+export const notFound = (req: Request, res: Response, _next: NextFunction): void => {
+  res.status(404).json({
+    success: false,
+    message: `Not Found — ${req.originalUrl}`,
+  });
 };

@@ -80,6 +80,7 @@ export interface IPet extends Document {
   dateOfBirth: Date | null;
   weight: number | null;
   description: string | null;
+  imageUrl: string | null;
   image: string | null;
   createdAt: Date;
   updatedAt: Date;

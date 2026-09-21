@@ -54,6 +54,7 @@ const petSchema = new Schema<IPet>(
       default: null,
     },
 
+    imageUrl: { type: String, default: null },
     image: { type: String, default: null },
   },
   { timestamps: true }
