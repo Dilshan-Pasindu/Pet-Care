@@ -23,6 +23,20 @@ export const serviceService = {
     const res = await api.get<ApiResponse<IService>>(`/services/${id}`);
     return res.data.data!;
   },
+
+  async createService(data: Partial<IService>): Promise<IService> {
+    const res = await api.post<ApiResponse<IService>>('/services', data);
+    return res.data.data!;
+  },
+
+  async updateService(id: string, data: Partial<IService>): Promise<IService> {
+    const res = await api.put<ApiResponse<IService>>(`/services/${id}`, data);
+    return res.data.data!;
+  },
+
+  async deleteService(id: string): Promise<void> {
+    await api.delete(`/services/${id}`);
+  },
 };
 
 export default serviceService;
