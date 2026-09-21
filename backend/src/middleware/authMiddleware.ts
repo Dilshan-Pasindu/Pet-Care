@@ -15,15 +15,16 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { sendError } from '../utils/response';
 import { JwtPayload } from '../types/models';
+import User from '../common/authentication/user.model';
 
 /**
- * Middleware: Verify JWT and attach user to req.
+ * Middleware: Verify JWT and attach active user to req.
  */
-export const protect = (
+export const protect = async (
   req: Request,
   res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   let token: string | undefined;
 
   if (
@@ -48,9 +49,20 @@ export const protect = (
   try {
     const decoded = jwt.verify(token, secret) as JwtPayload;
 
+    const user = await User.findById(decoded.id).select('isActive role');
+    if (!user) {
+      sendError(res, 401, 'User belonging to this token no longer exists.');
+      return;
+    }
+
+    if (user.isActive === false) {
+      sendError(res, 403, 'Your account has been deactivated. Please contact support.');
+      return;
+    }
+
     req.user = {
-      id: decoded.id,
-      role: decoded.role,
+      id: user._id.toString(),
+      role: user.role,
     };
 
     next();

@@ -10,9 +10,10 @@
  */
 
 import { Router } from 'express';
-import { register, login, getMe, updateMe } from './auth.controller';
+import { register, login, getMe, updateMe, getUsers, setUserStatus, setUserRole } from './auth.controller';
 import { validateRegister, validateLogin, validateProfileUpdate } from './auth.validation';
 import { protect } from '../../middleware/authMiddleware';
+import { authorize } from '../../middleware/roleMiddleware';
 import { uploadSingle } from '../../middleware/uploadMiddleware';
 
 const router = Router();
@@ -21,8 +22,13 @@ const router = Router();
 router.post('/register', validateRegister, register);
 router.post('/login', validateLogin, login);
 
-// Protected routes
+// Protected user routes
 router.get('/me', protect, getMe);
 router.put('/me', protect, uploadSingle('profileImage'), validateProfileUpdate, updateMe);
+
+// Admin-only User & Role Management routes
+router.get('/users', protect, authorize('admin'), getUsers);
+router.patch('/users/:id/status', protect, authorize('admin'), setUserStatus);
+router.patch('/users/:id/role', protect, authorize('admin'), setUserRole);
 
 export default router;

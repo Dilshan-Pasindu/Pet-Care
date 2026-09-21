@@ -69,3 +69,53 @@ export const updateMe = async (
     next(error);
   }
 };
+
+// ─── Admin Controller Handlers ────────────────────────────────
+
+export const getUsers = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const users = await authService.getAllUsers();
+    sendSuccess(res, 200, 'All registered users retrieved successfully.', users);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const setUserStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { isActive } = req.body as { isActive: boolean };
+    const updatedUser = await authService.toggleUserStatus(id, Boolean(isActive), req.user!.id);
+    sendSuccess(
+      res,
+      200,
+      `User account ${isActive ? 'activated' : 'deactivated'} successfully.`,
+      updatedUser
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const setUserRole = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body as { role: import('../../types/models').UserRole };
+    const updatedUser = await authService.updateUserRole(id, role, req.user!.id);
+    sendSuccess(res, 200, `User role updated to ${role} successfully.`, updatedUser);
+  } catch (error) {
+    next(error);
+  }
+};

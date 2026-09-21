@@ -29,6 +29,7 @@ const toUserResponse = (user: IUser): IUserResponse => ({
   email: user.email,
   phone: user.phone,
   role: user.role,
+  isActive: user.isActive !== false,
   profileImage: user.profileImage,
   createdAt: user.createdAt,
 });
@@ -48,6 +49,7 @@ export const registerUser = async (userData: RegisterInput): Promise<AuthPayload
     password,
     phone: phone ?? null,
     role: role ?? 'owner',
+    isActive: true,
   });
 
   const token = generateToken(user._id.toString(), user.role);
@@ -59,6 +61,13 @@ export const loginUser = async (email: string, password: string): Promise<AuthPa
 
   if (!user) {
     throw Object.assign(new Error('Invalid email or password.'), { statusCode: 401 });
+  }
+
+  if (user.isActive === false) {
+    throw Object.assign(
+      new Error('Your account has been deactivated. Please contact an administrator.'),
+      { statusCode: 403 }
+    );
   }
 
   const isMatch = await user.comparePassword(password);
@@ -99,4 +108,55 @@ export const updateUserProfile = async (
   }
 
   return user;
+};
+
+// ─── Admin User & Role Management ────────────────────────────
+
+export const getAllUsers = async (): Promise<IUserResponse[]> => {
+  const users = await User.find().sort({ createdAt: -1 });
+  return users.map(toUserResponse);
+};
+
+export const toggleUserStatus = async (
+  targetUserId: string,
+  isActive: boolean,
+  adminId: string
+): Promise<IUserResponse> => {
+  if (targetUserId === adminId) {
+    throw Object.assign(new Error('Admins cannot deactivate their own account.'), { statusCode: 400 });
+  }
+
+  const user = await User.findByIdAndUpdate(
+    targetUserId,
+    { isActive },
+    { new: true, runValidators: true }
+  );
+
+  if (!user) {
+    throw Object.assign(new Error('User not found.'), { statusCode: 404 });
+  }
+
+  return toUserResponse(user);
+};
+
+export const updateUserRole = async (
+  targetUserId: string,
+  role: UserRole,
+  adminId: string
+): Promise<IUserResponse> => {
+  if (targetUserId === adminId && role !== 'admin') {
+    throw Object.assign(new Error('Admins cannot demote their own account role.'), { statusCode: 400 });
+  }
+
+  const user = await User.findByIdAndUpdate(
+    targetUserId,
+    { role },
+    { new: true, runValidators: true }
+  );
+
+  if (!user) {
+    throw Object.assign(new Error('User not found.'), { statusCode: 404 });
+  }
+
+  return toUserResponse(user);
 };
