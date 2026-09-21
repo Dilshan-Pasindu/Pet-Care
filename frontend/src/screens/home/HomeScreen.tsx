@@ -156,12 +156,9 @@ export const HomeScreen: React.FC = () => {
         </Card>
       ) : null}
 
-      {/* Quick Action Hub for 6 Functions + Admin Console */}
+      {/* Quick Action Hub for 6 Functions */}
       <View style={styles.sectionHeaderRow}>
         <Text style={styles.sectionTitle}>Quick Management</Text>
-        {user?.role === 'admin' && (
-          <Badge label="Admin Mode" variant="danger" />
-        )}
       </View>
 
       <View style={styles.actionsGrid}>
@@ -224,18 +221,6 @@ export const HomeScreen: React.FC = () => {
           </View>
           <Text style={styles.actionLabel}>Bookings</Text>
         </TouchableOpacity>
-
-        {user?.role === 'admin' && (
-          <TouchableOpacity
-            style={[styles.actionTile, { width: tileWidth }]}
-            onPress={() => navigation.navigate('AdminManagement')}
-          >
-            <View style={[styles.iconCircle, { backgroundColor: '#FEF2F2' }]}>
-              <ShieldCheck size={22} color="#DC2626" />
-            </View>
-            <Text style={styles.actionLabel}>Admin Portal</Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       {/* My Pets Horizontal Preview */}

@@ -123,24 +123,6 @@ export const ProfileScreen: React.FC = () => {
         )}
       </Card>
 
-      {user?.role === 'admin' && (
-        <Card
-          style={styles.adminCard}
-          onPress={() => navigation.navigate('AdminManagement')}
-        >
-          <View style={styles.adminCardLeft}>
-            <View style={styles.adminIconCircle}>
-              <ShieldCheck size={22} color="#DC2626" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.adminCardTitle}>Admin Console</Text>
-              <Text style={styles.adminCardSub}>Manage user accounts, roles & status</Text>
-            </View>
-          </View>
-          <ChevronRight size={18} color={colors.textSecondary} />
-        </Card>
-      )}
-
       <Card style={styles.infoCard}>
         <Text style={styles.cardTitle}>App Information</Text>
         <View style={styles.detailsList}>

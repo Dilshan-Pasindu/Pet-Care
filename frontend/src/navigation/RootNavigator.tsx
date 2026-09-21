@@ -11,7 +11,9 @@ import { useAuth } from '../context/AuthContext';
 import colors from '../constants/colors';
 
 import AuthNavigator from './AuthNavigator';
-import MainTabNavigator from './MainTabNavigator';
+import OwnerTabNavigator from './OwnerTabNavigator';
+import VeterinarianTabNavigator from './VeterinarianTabNavigator';
+import AdminTabNavigator from './AdminTabNavigator';
 import Loading from '../components/common/Loading';
 
 // Function 1 Screens
@@ -45,11 +47,19 @@ import AdminManagementScreen from '../screens/admin/AdminManagementScreen';
 const Stack = createStackNavigator<RootStackParamList>();
 
 export const RootNavigator: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
     return <Loading fullScreen message="Starting PetCare..." />;
   }
+
+  // Strictly select dedicated role portal
+  const RolePortalComponent =
+    user?.role === 'veterinarian'
+      ? VeterinarianTabNavigator
+      : user?.role === 'admin'
+      ? AdminTabNavigator
+      : OwnerTabNavigator;
 
   return (
     <NavigationContainer>
@@ -79,7 +89,7 @@ export const RootNavigator: React.FC = () => {
           <>
             <Stack.Screen
               name="Main"
-              component={MainTabNavigator}
+              component={RolePortalComponent}
               options={{ headerShown: false }}
             />
 
