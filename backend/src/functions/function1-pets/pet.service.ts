@@ -45,6 +45,14 @@ export const getPetsByOwner = async (ownerId: string): Promise<IPet[]> => {
   return Pet.find({ ownerId }).sort({ createdAt: -1 });
 };
 
+const extractId = (entity: any): string => {
+  if (!entity) return '';
+  if (typeof entity === 'object' && entity._id) {
+    return entity._id.toString();
+  }
+  return entity.toString();
+};
+
 export const getPetById = async (
   petId: string,
   userId: string,
@@ -56,7 +64,9 @@ export const getPetById = async (
     throw Object.assign(new Error('Pet not found.'), { statusCode: 404 });
   }
 
-  if (userRole === 'owner' && pet.ownerId.toString() !== userId) {
+  const ownerIdString = extractId(pet.ownerId);
+
+  if (userRole === 'owner' && ownerIdString !== userId.toString()) {
     throw Object.assign(new Error('You do not have permission to view this pet.'), { statusCode: 403 });
   }
 
@@ -75,7 +85,7 @@ export const updatePet = async (
     throw Object.assign(new Error('Pet not found.'), { statusCode: 404 });
   }
 
-  if (pet.ownerId.toString() !== ownerId) {
+  if (extractId(pet.ownerId) !== ownerId.toString()) {
     throw Object.assign(new Error('You do not have permission to update this pet.'), { statusCode: 403 });
   }
 
@@ -97,7 +107,7 @@ export const deletePet = async (petId: string, ownerId: string): Promise<void> =
     throw Object.assign(new Error('Pet not found.'), { statusCode: 404 });
   }
 
-  if (pet.ownerId.toString() !== ownerId) {
+  if (extractId(pet.ownerId) !== ownerId.toString()) {
     throw Object.assign(new Error('You do not have permission to delete this pet.'), { statusCode: 403 });
   }
 

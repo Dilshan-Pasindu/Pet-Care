@@ -14,6 +14,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../../types/navigation';
@@ -25,6 +26,7 @@ import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import Loading from '../../../components/common/Loading';
 import Badge from '../../../components/common/Badge';
+import { isSmallDevice } from '../../../utils/responsive';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
 
@@ -39,6 +41,7 @@ const CATEGORIES: Array<'All' | ServiceCategory> = [
 ];
 
 export const ServiceListScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavProp>();
   const [services, setServices] = useState<IService[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,7 +88,7 @@ export const ServiceListScreen: React.FC = () => {
       />
       <View style={styles.cardContent}>
         <View style={styles.titleRow}>
-          <Text style={styles.serviceName}>{item.name}</Text>
+          <Text style={styles.serviceName} numberOfLines={1}>{item.name}</Text>
           <Badge label={item.category} variant="secondary" />
         </View>
 
@@ -97,7 +100,7 @@ export const ServiceListScreen: React.FC = () => {
 
         <View style={styles.infoRow}>
           <Text style={styles.duration}>⏱ {item.duration} mins</Text>
-          {item.provider ? <Text style={styles.provider}>🏢 {item.provider}</Text> : null}
+          {item.provider ? <Text style={styles.provider} numberOfLines={1}>🏢 {item.provider}</Text> : null}
         </View>
 
         <View style={styles.actionRow}>
@@ -113,11 +116,13 @@ export const ServiceListScreen: React.FC = () => {
     </Card>
   );
 
+  const horizontalPad = isSmallDevice ? 14 : 16;
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingHorizontal: horizontalPad, paddingTop: Math.max(insets.top + 8, 16) }]}>
         <View style={styles.titleBar}>
-          <View>
+          <View style={{ flex: 1, marginRight: 8 }}>
             <Text style={styles.title}>Pet Services</Text>
             <Text style={styles.subtitle}>Grooming, training, wellness & boarding</Text>
           </View>
@@ -158,7 +163,13 @@ export const ServiceListScreen: React.FC = () => {
           data={services}
           keyExtractor={(item) => item._id}
           renderItem={renderServiceCard}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[
+            styles.listContent,
+            {
+              paddingHorizontal: horizontalPad,
+              paddingBottom: Math.max(insets.bottom + 20, 32),
+            },
+          ]}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
           }
@@ -178,14 +189,12 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: {
     backgroundColor: colors.surface,
-    paddingHorizontal: 16,
-    paddingTop: 16,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
   titleBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  title: { fontSize: 24, fontWeight: '700', color: colors.text },
-  subtitle: { fontSize: 13, color: colors.textSecondary, marginTop: 2, marginBottom: 10 },
+  title: { fontSize: isSmallDevice ? 22 : 24, fontWeight: '700', color: colors.text },
+  subtitle: { fontSize: isSmallDevice ? 12 : 13, color: colors.textSecondary, marginTop: 2, marginBottom: 10 },
   searchBox: { marginBottom: 10 },
   chipScroll: { paddingBottom: 12, gap: 8 },
   chip: {
@@ -197,16 +206,16 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: colors.primary },
   chipText: { fontSize: 13, color: colors.textSecondary, fontWeight: '500' },
   chipTextActive: { color: '#FFFFFF', fontWeight: '600' },
-  listContent: { padding: 16, paddingBottom: 24 },
-  card: { overflow: 'hidden', padding: 0 },
-  cardImage: { width: '100%', height: 160, backgroundColor: colors.borderLight },
-  cardContent: { padding: 16 },
+  listContent: { paddingTop: 12 },
+  card: { overflow: 'hidden', padding: 0, marginBottom: 12 },
+  cardImage: { width: '100%', height: isSmallDevice ? 140 : 160, backgroundColor: colors.borderLight },
+  cardContent: { padding: isSmallDevice ? 12 : 16 },
   titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  serviceName: { fontSize: 17, fontWeight: '700', color: colors.text, flex: 1, marginRight: 8 },
+  serviceName: { fontSize: isSmallDevice ? 15 : 17, fontWeight: '700', color: colors.text, flex: 1, marginRight: 8 },
   description: { fontSize: 13, color: colors.textSecondary, marginTop: 6, lineHeight: 18 },
   infoRow: { flexDirection: 'row', gap: 16, marginTop: 10 },
   duration: { fontSize: 13, color: colors.textSecondary, fontWeight: '500' },
-  provider: { fontSize: 13, color: colors.textSecondary },
+  provider: { fontSize: 13, color: colors.textSecondary, flex: 1 },
   actionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -216,8 +225,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.borderLight,
   },
-  price: { fontSize: 20, fontWeight: '800', color: colors.secondary },
-  bookBtn: { minWidth: 90 },
+  price: { fontSize: isSmallDevice ? 18 : 20, fontWeight: '800', color: colors.secondary },
+  bookBtn: { minWidth: isSmallDevice ? 80 : 90 },
   emptyContainer: { alignItems: 'center', paddingVertical: 60 },
   emptyTitle: { fontSize: 17, fontWeight: '700', color: colors.text, marginBottom: 4 },
   emptySubtitle: { fontSize: 13, color: colors.textSecondary },

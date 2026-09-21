@@ -52,6 +52,7 @@ export interface IUser extends Document {
   password: string;
   phone: string | null;
   role: UserRole;
+  isActive: boolean;
   profileImage: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -64,6 +65,7 @@ export interface IUserResponse {
   email: string;
   phone: string | null;
   role: UserRole;
+  isActive: boolean;
   profileImage: string | null;
   createdAt: Date;
 }

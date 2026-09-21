@@ -11,11 +11,14 @@ dotenv.config();
 
 import app from './app';
 import connectDB from './config/database';
+import seedDatabase from './utils/seedData';
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
-// Connect to MongoDB Atlas
-connectDB();
+// Connect to MongoDB Atlas & seed initial data if needed
+connectDB().then(() => {
+  seedDatabase();
+});
 
 const server = app.listen(PORT, () => {
   console.log(`🚀 PetCare Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);

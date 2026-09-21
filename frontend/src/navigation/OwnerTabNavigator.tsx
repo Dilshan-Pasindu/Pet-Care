@@ -1,12 +1,11 @@
 /**
- * navigation/MainTabNavigator.tsx
- * Bottom Tab Navigator for authenticated users
+ * navigation/OwnerTabNavigator.tsx
+ * Dedicated Tab Navigator for Pet Owners
  */
 
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Home, PawPrint, Stethoscope, Calendar, Sparkles, User } from 'lucide-react-native';
-import { MainTabParamList } from '../types/navigation';
 import colors from '../constants/colors';
 
 import HomeScreen from '../screens/home/HomeScreen';
@@ -16,9 +15,18 @@ import AppointmentListScreen from '../functions/function3-appointments/screens/A
 import ServiceListScreen from '../functions/function5-services/screens/ServiceListScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 
-const Tab = createBottomTabNavigator<MainTabParamList>();
+export type OwnerTabParamList = {
+  HomeTab: undefined;
+  PetsTab: undefined;
+  VetsTab: undefined;
+  AppointmentsTab: undefined;
+  ServicesTab: undefined;
+  ProfileTab: undefined;
+};
 
-export const MainTabNavigator: React.FC = () => {
+const Tab = createBottomTabNavigator<OwnerTabParamList>();
+
+export const OwnerTabNavigator: React.FC = () => {
   return (
     <Tab.Navigator
       screenOptions={{
@@ -58,7 +66,7 @@ export const MainTabNavigator: React.FC = () => {
         name="VetsTab"
         component={VetListScreen}
         options={{
-          tabBarLabel: 'Veterinarians',
+          tabBarLabel: 'Vets',
           tabBarIcon: ({ color }) => <Stethoscope size={22} color={color} strokeWidth={2.2} />,
         }}
       />
@@ -90,4 +98,4 @@ export const MainTabNavigator: React.FC = () => {
   );
 };
 
-export default MainTabNavigator;
+export default OwnerTabNavigator;

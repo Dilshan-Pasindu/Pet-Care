@@ -74,6 +74,12 @@ export const updateVeterinarian = async (
   return updated as IVeterinarian;
 };
 
+export const getMyVeterinarianProfile = async (userId: string): Promise<IVeterinarian> => {
+  const vet = await Veterinarian.findOne({ userId }).populate('userId', 'name email phone');
+  if (!vet) throw Object.assign(new Error('Veterinarian profile not found.'), { statusCode: 404 });
+  return vet;
+};
+
 export const deleteVeterinarian = async (vetId: string): Promise<void> => {
   const vet = await Veterinarian.findById(vetId);
   if (!vet) throw Object.assign(new Error('Veterinarian not found.'), { statusCode: 404 });

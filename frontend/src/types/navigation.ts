@@ -65,4 +65,5 @@ export type RootStackParamList = {
   BookService: { serviceId: string };
   MyBookings: undefined;
   AddReview: { serviceId?: string; vetId?: string; title?: string };
+  AdminManagement: undefined;
 };

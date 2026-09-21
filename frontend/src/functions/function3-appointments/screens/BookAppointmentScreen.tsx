@@ -11,7 +11,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../../types/navigation';
@@ -24,6 +27,7 @@ import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import Loading from '../../../components/common/Loading';
 import PetAvatar from '../../../components/common/PetAvatar';
+import { isSmallDevice } from '../../../utils/responsive';
 
 type RouteProps = RouteProp<RootStackParamList, 'BookAppointment'>;
 type NavProp = StackNavigationProp<RootStackParamList>;
@@ -31,6 +35,7 @@ type NavProp = StackNavigationProp<RootStackParamList>;
 const DEFAULT_TIMES = ['09:00 AM', '10:00 AM', '11:30 AM', '02:00 PM', '03:30 PM', '04:30 PM'];
 
 export const BookAppointmentScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavProp>();
   const route = useRoute<RouteProps>();
   const initialVetId = route.params?.vetId;
@@ -110,120 +115,143 @@ export const BookAppointmentScreen: React.FC = () => {
   if (loading) return <Loading fullScreen message="Setting up booking..." />;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.sectionHeading}>1. Select Pet</Text>
-      {pets.length === 0 ? (
-        <View style={styles.noPetBox}>
-          <Text style={styles.noPetText}>You have not added any pets yet.</Text>
-          <Button
-            title="+ Add a Pet"
-            size="small"
-            onPress={() => navigation.navigate('AddPet')}
-          />
-        </View>
-      ) : (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={[
+          styles.content,
+          {
+            paddingHorizontal: isSmallDevice ? 14 : 16,
+            paddingBottom: Math.max(insets.bottom + 24, 40),
+          },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.sectionHeading}>1. Select Pet</Text>
+        {pets.length === 0 ? (
+          <View style={styles.noPetBox}>
+            <Text style={styles.noPetText}>You have not added any pets yet.</Text>
+            <Button
+              title="+ Add a Pet"
+              size="small"
+              onPress={() => navigation.navigate('AddPet')}
+            />
+          </View>
+        ) : (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.itemScroll}>
+            {pets.map((pet) => (
+              <TouchableOpacity
+                key={pet._id}
+                style={[
+                  styles.selectCard,
+                  selectedPetId === pet._id && styles.selectCardActive,
+                ]}
+                onPress={() => setSelectedPetId(pet._id)}
+              >
+                <PetAvatar
+                  imageUrl={pet.imageUrl}
+                  image={pet.image}
+                  name={pet.name}
+                  species={pet.species}
+                  size={40}
+                  borderRadius={20}
+                />
+                <Text
+                  style={[styles.cardTitle, selectedPetId === pet._id && styles.cardTitleActive]}
+                  numberOfLines={1}
+                >
+                  {pet.name}
+                </Text>
+                <Text style={styles.cardSub} numberOfLines={1}>{pet.species}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
+
+        <Text style={styles.sectionHeading}>2. Select Veterinarian</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.itemScroll}>
-          {pets.map((pet) => (
+          {vets.map((vet) => (
             <TouchableOpacity
-              key={pet._id}
+              key={vet._id}
               style={[
                 styles.selectCard,
-                selectedPetId === pet._id && styles.selectCardActive,
+                selectedVetId === vet._id && styles.selectCardActive,
               ]}
-              onPress={() => setSelectedPetId(pet._id)}
+              onPress={() => setSelectedVetId(vet._id)}
             >
-              <PetAvatar
-                imageUrl={pet.imageUrl}
-                image={pet.image}
-                name={pet.name}
-                species={pet.species}
-                size={40}
-                borderRadius={20}
-              />
-              <Text style={[styles.cardTitle, selectedPetId === pet._id && styles.cardTitleActive]}>
-                {pet.name}
+              <Text style={styles.petIcon}>👨‍⚕️</Text>
+              <Text
+                style={[styles.cardTitle, selectedVetId === vet._id && styles.cardTitleActive]}
+                numberOfLines={1}
+              >
+                {vet.name}
               </Text>
-              <Text style={styles.cardSub}>{pet.species}</Text>
+              <Text style={styles.cardSub} numberOfLines={1}>{vet.specialization}</Text>
+              <Text style={styles.cardPrice}>${vet.consultationFee}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
-      )}
 
-      <Text style={styles.sectionHeading}>2. Select Veterinarian</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.itemScroll}>
-        {vets.map((vet) => (
-          <TouchableOpacity
-            key={vet._id}
-            style={[
-              styles.selectCard,
-              selectedVetId === vet._id && styles.selectCardActive,
-            ]}
-            onPress={() => setSelectedVetId(vet._id)}
-          >
-            <Text style={styles.petIcon}>👨‍⚕️</Text>
-            <Text style={[styles.cardTitle, selectedVetId === vet._id && styles.cardTitleActive]}>
-              {vet.name}
-            </Text>
-            <Text style={styles.cardSub}>{vet.specialization}</Text>
-            <Text style={styles.cardPrice}>${vet.consultationFee}</Text>
-          </TouchableOpacity>
-        ))}
+        <Text style={styles.sectionHeading}>3. Appointment Date & Time</Text>
+        <Input
+          label="Date (YYYY-MM-DD)"
+          value={date}
+          onChangeText={setDate}
+          placeholder="2026-10-15"
+        />
+
+        <Text style={styles.label}>Select Time Slot</Text>
+        <View style={styles.timesGrid}>
+          {DEFAULT_TIMES.map((slot) => (
+            <TouchableOpacity
+              key={slot}
+              style={[styles.timeChip, time === slot && styles.timeChipActive]}
+              onPress={() => setTime(slot)}
+            >
+              <Text style={[styles.timeChipText, time === slot && styles.timeChipTextActive]}>
+                {slot}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <Text style={styles.sectionHeading}>4. Reason & Details</Text>
+        <Input
+          label="Reason for Visit *"
+          placeholder="e.g. Annual vaccination, lethargy, skin itching"
+          value={reason}
+          onChangeText={setReason}
+        />
+
+        <Input
+          label="Additional Notes (Optional)"
+          placeholder="Specific symptoms or requests for the veterinarian"
+          value={notes}
+          onChangeText={setNotes}
+          multiline
+          numberOfLines={3}
+        />
+
+        <Button
+          title="Confirm Appointment"
+          onPress={handleBook}
+          loading={submitting}
+          style={styles.confirmBtn}
+        />
       </ScrollView>
-
-      <Text style={styles.sectionHeading}>3. Appointment Date & Time</Text>
-      <Input
-        label="Date (YYYY-MM-DD)"
-        value={date}
-        onChangeText={setDate}
-        placeholder="2026-10-15"
-      />
-
-      <Text style={styles.label}>Select Time Slot</Text>
-      <View style={styles.timesGrid}>
-        {DEFAULT_TIMES.map((slot) => (
-          <TouchableOpacity
-            key={slot}
-            style={[styles.timeChip, time === slot && styles.timeChipActive]}
-            onPress={() => setTime(slot)}
-          >
-            <Text style={[styles.timeChipText, time === slot && styles.timeChipTextActive]}>
-              {slot}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <Text style={styles.sectionHeading}>4. Reason & Details</Text>
-      <Input
-        label="Reason for Visit *"
-        placeholder="e.g. Annual vaccination, lethargy, skin itching"
-        value={reason}
-        onChangeText={setReason}
-      />
-
-      <Input
-        label="Additional Notes (Optional)"
-        placeholder="Specific symptoms or requests for the veterinarian"
-        value={notes}
-        onChangeText={setNotes}
-        multiline
-        numberOfLines={3}
-      />
-
-      <Button
-        title="Confirm Appointment"
-        onPress={handleBook}
-        loading={submitting}
-        style={styles.confirmBtn}
-      />
-    </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 16, paddingBottom: 40 },
-  sectionHeading: { fontSize: 16, fontWeight: '700', color: colors.text, marginTop: 16, marginBottom: 10 },
+  content: { paddingVertical: 16 },
+  sectionHeading: { fontSize: 16, fontWeight: '700', color: colors.text, marginTop: 14, marginBottom: 10 },
   label: { fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 8 },
   itemScroll: { flexDirection: 'row', marginBottom: 8 },
   selectCard: {
@@ -231,10 +259,10 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.border,
     borderRadius: 14,
-    padding: 12,
+    padding: 10,
     marginRight: 10,
     alignItems: 'center',
-    width: 120,
+    width: isSmallDevice ? 105 : 120,
   },
   selectCardActive: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
   petIcon: { fontSize: 24, marginBottom: 4 },
@@ -253,14 +281,14 @@ const styles = StyleSheet.create({
   timesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
   timeChip: {
     paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingHorizontal: isSmallDevice ? 10 : 14,
     borderRadius: 10,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
   },
   timeChipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  timeChipText: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
+  timeChipText: { fontSize: isSmallDevice ? 12 : 13, fontWeight: '600', color: colors.textSecondary },
   timeChipTextActive: { color: '#FFFFFF' },
   confirmBtn: { marginTop: 12 },
 });

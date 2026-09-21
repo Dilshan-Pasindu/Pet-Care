@@ -12,7 +12,10 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -22,10 +25,12 @@ import petService from '../services/petService';
 import colors from '../../../constants/colors';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
+import { isSmallDevice } from '../../../utils/responsive';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
 
 export const AddPetScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavProp>();
 
   const [name, setName] = useState('');
@@ -120,137 +125,154 @@ export const AddPetScreen: React.FC = () => {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.photoSection}>
-        <TouchableOpacity style={styles.imagePicker} onPress={pickImage} activeOpacity={0.8}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={[
+          styles.content,
+          {
+            paddingHorizontal: isSmallDevice ? 16 : 20,
+            paddingBottom: Math.max(insets.bottom + 24, 40),
+          },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.photoSection}>
+          <TouchableOpacity style={styles.imagePicker} onPress={pickImage} activeOpacity={0.8}>
+            {imageUri ? (
+              <Image source={{ uri: imageUri }} style={styles.previewImage} />
+            ) : (
+              <View style={styles.placeholderContainer}>
+                <Text style={styles.cameraIcon}>📸</Text>
+                <Text style={styles.imagePickerText}>Add Photo</Text>
+                <Text style={styles.optionalBadge}>(Optional)</Text>
+              </View>
+            )}
+          </TouchableOpacity>
           {imageUri ? (
-            <Image source={{ uri: imageUri }} style={styles.previewImage} />
+            <TouchableOpacity style={styles.removePhotoBtn} onPress={() => setImageUri(null)}>
+              <Text style={styles.removePhotoText}>Remove photo</Text>
+            </TouchableOpacity>
           ) : (
-            <View style={styles.placeholderContainer}>
-              <Text style={styles.cameraIcon}>📸</Text>
-              <Text style={styles.imagePickerText}>Add Photo</Text>
-              <Text style={styles.optionalBadge}>(Optional)</Text>
-            </View>
+            <Text style={styles.photoHintText}>Photo is optional. A friendly avatar will be used if none provided.</Text>
           )}
-        </TouchableOpacity>
-        {imageUri ? (
-          <TouchableOpacity style={styles.removePhotoBtn} onPress={() => setImageUri(null)}>
-            <Text style={styles.removePhotoText}>Remove photo</Text>
-          </TouchableOpacity>
-        ) : (
-          <Text style={styles.photoHintText}>Photo is optional. A friendly avatar will be used if none provided.</Text>
-        )}
-      </View>
-
-      <Input
-        label="Pet Name *"
-        placeholder="e.g. Bella, Max"
-        value={name}
-        onChangeText={setName}
-        error={errors.name}
-      />
-
-      <Input
-        label="Species *"
-        placeholder="e.g. Dog, Cat, Bird"
-        value={species}
-        onChangeText={setSpecies}
-        error={errors.species}
-      />
-
-      <Input
-        label="Breed"
-        placeholder="e.g. Golden Retriever, Siamese"
-        value={breed}
-        onChangeText={setBreed}
-      />
-
-      <View style={styles.genderContainer}>
-        <Text style={styles.label}>Gender *</Text>
-        <View style={styles.genderRow}>
-          <TouchableOpacity
-            style={[
-              styles.genderOption,
-              gender === 'male' && styles.genderOptionSelected,
-            ]}
-            onPress={() => setGender('male')}
-          >
-            <Text
-              style={[
-                styles.genderText,
-                gender === 'male' && styles.genderTextSelected,
-              ]}
-            >
-              ♂ Male
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.genderOption,
-              gender === 'female' && styles.genderOptionSelected,
-            ]}
-            onPress={() => setGender('female')}
-          >
-            <Text
-              style={[
-                styles.genderText,
-                gender === 'female' && styles.genderTextSelected,
-              ]}
-            >
-              ♀ Female
-            </Text>
-          </TouchableOpacity>
         </View>
-      </View>
 
-      <Input
-        label="Date of Birth (YYYY-MM-DD)"
-        placeholder="2022-05-15"
-        value={dateOfBirth}
-        onChangeText={setDateOfBirth}
-        error={errors.dateOfBirth}
-      />
+        <Input
+          label="Pet Name *"
+          placeholder="e.g. Bella, Max"
+          value={name}
+          onChangeText={setName}
+          error={errors.name}
+        />
 
-      <Input
-        label="Weight (kg)"
-        placeholder="e.g. 12.5"
-        keyboardType="decimal-pad"
-        value={weight}
-        onChangeText={setWeight}
-        error={errors.weight}
-      />
+        <Input
+          label="Species *"
+          placeholder="e.g. Dog, Cat, Bird"
+          value={species}
+          onChangeText={setSpecies}
+          error={errors.species}
+        />
 
-      <Input
-        label="Description / Medical Notes"
-        placeholder="Any allergies, friendly habits, or dietary preferences"
-        value={description}
-        onChangeText={setDescription}
-        multiline
-        numberOfLines={3}
-      />
+        <Input
+          label="Breed"
+          placeholder="e.g. Golden Retriever, Siamese"
+          value={breed}
+          onChangeText={setBreed}
+        />
 
-      <Button
-        title="Create Pet Profile"
-        onPress={handleSubmit}
-        loading={submitting}
-        style={styles.submitBtn}
-      />
-    </ScrollView>
+        <View style={styles.genderContainer}>
+          <Text style={styles.label}>Gender *</Text>
+          <View style={styles.genderRow}>
+            <TouchableOpacity
+              style={[
+                styles.genderOption,
+                gender === 'male' && styles.genderOptionSelected,
+              ]}
+              onPress={() => setGender('male')}
+            >
+              <Text
+                style={[
+                  styles.genderText,
+                  gender === 'male' && styles.genderTextSelected,
+                ]}
+              >
+                ♂ Male
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.genderOption,
+                gender === 'female' && styles.genderOptionSelected,
+              ]}
+              onPress={() => setGender('female')}
+            >
+              <Text
+                style={[
+                  styles.genderText,
+                  gender === 'female' && styles.genderTextSelected,
+                ]}
+              >
+                ♀ Female
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <Input
+          label="Date of Birth (YYYY-MM-DD)"
+          placeholder="2022-05-15"
+          value={dateOfBirth}
+          onChangeText={setDateOfBirth}
+          error={errors.dateOfBirth}
+        />
+
+        <Input
+          label="Weight (kg)"
+          placeholder="e.g. 12.5"
+          keyboardType="decimal-pad"
+          value={weight}
+          onChangeText={setWeight}
+          error={errors.weight}
+        />
+
+        <Input
+          label="Description / Medical Notes"
+          placeholder="Any allergies, friendly habits, or dietary preferences"
+          value={description}
+          onChangeText={setDescription}
+          multiline
+          numberOfLines={3}
+        />
+
+        <Button
+          title="Create Pet Profile"
+          onPress={handleSubmit}
+          loading={submitting}
+          style={styles.submitBtn}
+        />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 20, paddingBottom: 40 },
+  content: { paddingVertical: 20 },
   photoSection: {
     alignItems: 'center',
     marginBottom: 20,
   },
   imagePicker: {
     alignSelf: 'center',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: isSmallDevice ? 104 : 120,
+    height: isSmallDevice ? 104 : 120,
+    borderRadius: isSmallDevice ? 52 : 60,
     backgroundColor: colors.surface,
     borderWidth: 2,
     borderColor: colors.border,
@@ -262,7 +284,7 @@ const styles = StyleSheet.create({
   },
   previewImage: { width: '100%', height: '100%' },
   placeholderContainer: { alignItems: 'center' },
-  cameraIcon: { fontSize: 26, marginBottom: 2 },
+  cameraIcon: { fontSize: isSmallDevice ? 22 : 26, marginBottom: 2 },
   imagePickerText: { fontSize: 12, color: colors.textSecondary, fontWeight: '600' },
   optionalBadge: { fontSize: 10, color: colors.textPlaceholder, marginTop: 2 },
   removePhotoBtn: {
@@ -279,13 +301,14 @@ const styles = StyleSheet.create({
     color: colors.textPlaceholder,
     textAlign: 'center',
     marginTop: 4,
+    maxWidth: 280,
   },
   genderContainer: { marginBottom: 16 },
   label: { fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 8 },
-  genderRow: { flexDirection: 'row', gap: 12 },
+  genderRow: { flexDirection: 'row', gap: 10 },
   genderOption: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: isSmallDevice ? 10 : 12,
     borderWidth: 1.5,
     borderColor: colors.border,
     borderRadius: 12,
@@ -296,7 +319,7 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
     backgroundColor: colors.primaryLight,
   },
-  genderText: { fontSize: 14, fontWeight: '600', color: colors.textSecondary },
+  genderText: { fontSize: isSmallDevice ? 13 : 14, fontWeight: '600', color: colors.textSecondary },
   genderTextSelected: { color: colors.primary },
   submitBtn: { marginTop: 12 },
 });

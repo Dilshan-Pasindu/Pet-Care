@@ -12,7 +12,9 @@ import {
   TouchableOpacity,
   Image,
   RefreshControl,
+  useWindowDimensions,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../types/navigation';
@@ -26,10 +28,24 @@ import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 import PetAvatar from '../../components/common/PetAvatar';
 import { formatDate } from '../../utils/formatDate';
+import { isSmallDevice } from '../../utils/responsive';
+import {
+  PawPrint,
+  Stethoscope,
+  CalendarPlus,
+  FileText,
+  Sparkles,
+  BookmarkCheck,
+  ShieldCheck,
+  Calendar,
+  Clock,
+} from 'lucide-react-native';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
 
 export const HomeScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const navigation = useNavigation<NavProp>();
   const { user } = useAuth();
 
@@ -37,6 +53,11 @@ export const HomeScreen: React.FC = () => {
   const [appointments, setAppointments] = useState<IAppointment[]>([]);
   const [services, setServices] = useState<IService[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Dynamic 3-column tile calculation: screen width - horizontal padding (32) - 2 gaps (20)
+  const contentPadding = isSmallDevice ? 14 : 16;
+  const gap = 10;
+  const tileWidth = Math.floor((screenWidth - (contentPadding * 2) - (gap * 2)) / 3);
 
   const loadDashboard = async () => {
     try {
@@ -69,16 +90,30 @@ export const HomeScreen: React.FC = () => {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[
+        styles.content,
+        {
+          paddingHorizontal: contentPadding,
+          paddingTop: Math.max(insets.top + 8, 16),
+          paddingBottom: Math.max(insets.bottom + 20, 32),
+        },
+      ]}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
       }
     >
-      {/* Header */}
+      {/* Header with Pet Accent */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.welcome}>Welcome Back,</Text>
-          <Text style={styles.userName}>{user?.name || 'Pet Parent'} 👋</Text>
+        <View style={styles.headerGreeting}>
+          <View style={styles.badgeRow}>
+            <Text style={styles.welcome}>Welcome Back</Text>
+            <View style={styles.pawBadge}>
+              <PawPrint size={13} color={colors.primary} />
+            </View>
+          </View>
+          <Text style={styles.userName} numberOfLines={1}>
+            {user?.name || 'Pet Parent'}
+          </Text>
         </View>
         <TouchableOpacity onPress={() => navigation.navigate('Main')}>
           <Image
@@ -99,66 +134,91 @@ export const HomeScreen: React.FC = () => {
           style={styles.appointmentBanner}
         >
           <View style={styles.bannerHeader}>
-            <Text style={styles.bannerLabel}>Upcoming Veterinary Visit</Text>
+            <View style={styles.bannerTitleGroup}>
+              <Stethoscope size={15} color={colors.primary} />
+              <Text style={styles.bannerLabel}>Upcoming Veterinary Visit</Text>
+            </View>
             <Badge label="Confirmed" variant="success" />
           </View>
           <Text style={styles.bannerPet}>
-            🐾 {typeof nextAppointment.petId === 'object' ? nextAppointment.petId.name : 'Your Pet'}
+            {typeof nextAppointment.petId === 'object' ? nextAppointment.petId.name : 'Your Pet'}
           </Text>
-          <Text style={styles.bannerTime}>
-            📅 {formatDate(nextAppointment.date)} at ⏰ {nextAppointment.time}
-          </Text>
+          <View style={styles.bannerDetailsRow}>
+            <View style={styles.bannerDetailItem}>
+              <Calendar size={13} color={colors.textSecondary} />
+              <Text style={styles.bannerTimeText}>{formatDate(nextAppointment.date)}</Text>
+            </View>
+            <View style={styles.bannerDetailItem}>
+              <Clock size={13} color={colors.textSecondary} />
+              <Text style={styles.bannerTimeText}>{nextAppointment.time}</Text>
+            </View>
+          </View>
         </Card>
       ) : null}
 
       {/* Quick Action Hub for 6 Functions */}
-      <Text style={styles.sectionTitle}>Quick Management</Text>
+      <View style={styles.sectionHeaderRow}>
+        <Text style={styles.sectionTitle}>Quick Management</Text>
+      </View>
+
       <View style={styles.actionsGrid}>
         <TouchableOpacity
-          style={styles.actionTile}
+          style={[styles.actionTile, { width: tileWidth }]}
           onPress={() => navigation.navigate('Main')}
         >
-          <Text style={styles.actionIcon}>🐾</Text>
+          <View style={[styles.iconCircle, { backgroundColor: '#ECFDF5' }]}>
+            <PawPrint size={22} color="#059669" />
+          </View>
           <Text style={styles.actionLabel}>My Pets</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.actionTile}
+          style={[styles.actionTile, { width: tileWidth }]}
           onPress={() => navigation.navigate('Main')}
         >
-          <Text style={styles.actionIcon}>👨‍⚕️</Text>
+          <View style={[styles.iconCircle, { backgroundColor: '#EFF6FF' }]}>
+            <Stethoscope size={22} color="#2563EB" />
+          </View>
           <Text style={styles.actionLabel}>Find Vets</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.actionTile}
+          style={[styles.actionTile, { width: tileWidth }]}
           onPress={() => navigation.navigate('BookAppointment', {})}
         >
-          <Text style={styles.actionIcon}>📅</Text>
+          <View style={[styles.iconCircle, { backgroundColor: '#F5F3FF' }]}>
+            <CalendarPlus size={22} color="#7C3AED" />
+          </View>
           <Text style={styles.actionLabel}>Book Vet</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.actionTile}
+          style={[styles.actionTile, { width: tileWidth }]}
           onPress={() => navigation.navigate('MedicalRecordList', {})}
         >
-          <Text style={styles.actionIcon}>📋</Text>
+          <View style={[styles.iconCircle, { backgroundColor: '#FFFBEB' }]}>
+            <FileText size={22} color="#D97706" />
+          </View>
           <Text style={styles.actionLabel}>Medical</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.actionTile}
+          style={[styles.actionTile, { width: tileWidth }]}
           onPress={() => navigation.navigate('Main')}
         >
-          <Text style={styles.actionIcon}>✂️</Text>
+          <View style={[styles.iconCircle, { backgroundColor: '#FDF2F8' }]}>
+            <Sparkles size={22} color="#DB2777" />
+          </View>
           <Text style={styles.actionLabel}>Services</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.actionTile}
+          style={[styles.actionTile, { width: tileWidth }]}
           onPress={() => navigation.navigate('MyBookings')}
         >
-          <Text style={styles.actionIcon}>⭐</Text>
+          <View style={[styles.iconCircle, { backgroundColor: '#ECFEFF' }]}>
+            <BookmarkCheck size={22} color="#0891B2" />
+          </View>
           <Text style={styles.actionLabel}>Bookings</Text>
         </TouchableOpacity>
       </View>
@@ -189,12 +249,12 @@ export const HomeScreen: React.FC = () => {
                 image={pet.image}
                 name={pet.name}
                 species={pet.species}
-                size={56}
+                size={isSmallDevice ? 50 : 56}
                 borderRadius={12}
                 style={styles.petMiniImage}
               />
-              <Text style={styles.petMiniName}>{pet.name}</Text>
-              <Text style={styles.petMiniSpecies}>{pet.species}</Text>
+              <Text style={styles.petMiniName} numberOfLines={1}>{pet.name}</Text>
+              <Text style={styles.petMiniSpecies} numberOfLines={1}>{pet.species}</Text>
             </Card>
           ))}
         </ScrollView>
@@ -224,11 +284,19 @@ export const HomeScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 16, paddingBottom: 40 },
+  content: {},
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  headerGreeting: { flex: 1, marginRight: 12 },
+  badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   welcome: { fontSize: 13, color: colors.textSecondary, fontWeight: '500' },
-  userName: { fontSize: 24, fontWeight: '800', color: colors.text },
-  profileAvatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.borderLight },
+  pawBadge: {
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  userName: { fontSize: isSmallDevice ? 20 : 24, fontWeight: '800', color: colors.text, marginTop: 2 },
+  profileAvatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: colors.borderLight },
   appointmentBanner: {
     backgroundColor: '#EFF6FF',
     borderColor: '#BFDBFE',
@@ -236,35 +304,44 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   bannerHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  bannerLabel: { fontSize: 12, fontWeight: '700', color: colors.primary, textTransform: 'uppercase' },
+  bannerTitleGroup: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  bannerLabel: { fontSize: 11, fontWeight: '700', color: colors.primary, textTransform: 'uppercase' },
   bannerPet: { fontSize: 16, fontWeight: '700', color: colors.text, marginTop: 8 },
-  bannerTime: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
+  bannerDetailsRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: 4 },
+  bannerDetailItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  bannerTimeText: { fontSize: 13, color: colors.textSecondary },
   sectionTitle: { fontSize: 17, fontWeight: '700', color: colors.text, marginBottom: 12 },
   sectionHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, marginBottom: 10 },
   linkText: { fontSize: 14, fontWeight: '700', color: colors.primary },
   actionsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
   actionTile: {
-    width: '31%',
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 16,
-    paddingVertical: 16,
+    paddingVertical: isSmallDevice ? 12 : 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  actionIcon: { fontSize: 28, marginBottom: 6 },
-  actionLabel: { fontSize: 12, fontWeight: '600', color: colors.text },
+  iconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  actionLabel: { fontSize: isSmallDevice ? 11 : 12, fontWeight: '600', color: colors.text, textAlign: 'center' },
   petsScroll: { flexDirection: 'row', marginBottom: 12 },
-  petMiniCard: { width: 110, padding: 10, alignItems: 'center', marginRight: 10 },
-  petMiniImage: { width: 60, height: 60, borderRadius: 30, backgroundColor: colors.borderLight, marginBottom: 8 },
-  petMiniName: { fontSize: 13, fontWeight: '700', color: colors.text },
-  petMiniSpecies: { fontSize: 11, color: colors.textSecondary, marginTop: 2 },
+  petMiniCard: { width: isSmallDevice ? 100 : 110, padding: 10, alignItems: 'center', marginRight: 10 },
+  petMiniImage: { backgroundColor: colors.borderLight, marginBottom: 8 },
+  petMiniName: { fontSize: 13, fontWeight: '700', color: colors.text, textAlign: 'center' },
+  petMiniSpecies: { fontSize: 11, color: colors.textSecondary, marginTop: 2, textAlign: 'center' },
   emptyCard: { padding: 20, alignItems: 'center' },
   emptyCardTitle: { fontSize: 15, fontWeight: '700', color: colors.text },
-  emptyCardSub: { fontSize: 12, color: colors.textSecondary, marginTop: 4 },
+  emptyCardSub: { fontSize: 12, color: colors.textSecondary, marginTop: 4, textAlign: 'center' },
   serviceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14 },
-  serviceRowLeft: { flex: 1 },
+  serviceRowLeft: { flex: 1, paddingRight: 8 },
   serviceRowName: { fontSize: 15, fontWeight: '700', color: colors.text },
   serviceRowCategory: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
   serviceRowPrice: { fontSize: 16, fontWeight: '800', color: colors.secondary },

@@ -15,6 +15,7 @@ export interface IUser {
   email: string;
   phone?: string;
   role: UserRole;
+  isActive?: boolean;
   profileImage?: string | null;
   createdAt?: string;
   updatedAt?: string;

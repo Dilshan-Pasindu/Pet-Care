@@ -37,6 +37,13 @@ export const updateVeterinarian = async (req: Request, res: Response, next: Next
   } catch (error) { next(error); }
 };
 
+export const getMyVeterinarianProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const vet = await vetService.getMyVeterinarianProfile(req.user!.id);
+    sendSuccess(res, 200, 'Veterinarian profile retrieved successfully.', vet);
+  } catch (error) { next(error); }
+};
+
 export const deleteVeterinarian = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     await vetService.deleteVeterinarian(req.params.id);

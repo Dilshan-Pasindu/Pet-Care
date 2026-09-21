@@ -4,13 +4,13 @@
  */
 
 import React, { ReactNode } from 'react';
-import { TouchableOpacity, View, StyleSheet, ViewStyle } from 'react-native';
+import { TouchableOpacity, View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import colors from '../../constants/colors';
 
 interface CardProps {
   children: ReactNode;
   onPress?: () => void;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 export const Card: React.FC<CardProps> = ({ children, onPress, style }) => {

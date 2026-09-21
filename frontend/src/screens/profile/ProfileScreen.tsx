@@ -11,7 +11,11 @@ import {
   StyleSheet,
   Image,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../types/navigation';
 import { useAuth } from '../../context/AuthContext';
 import authService from '../../services/authService';
 import colors from '../../constants/colors';
@@ -19,8 +23,12 @@ import Card from '../../components/common/Card';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
+import { ShieldCheck, ChevronRight, PawPrint } from 'lucide-react-native';
+
+type NavProp = StackNavigationProp<RootStackParamList>;
 
 export const ProfileScreen: React.FC = () => {
+  const navigation = useNavigation<NavProp>();
   const { user, logout, refreshUser } = useAuth();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -156,6 +164,27 @@ const styles = StyleSheet.create({
   detailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
   detailLabel: { fontSize: 13, color: colors.textSecondary },
   detailVal: { fontSize: 13, fontWeight: '600', color: colors.text },
+  adminCard: {
+    marginTop: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FCA5A5',
+    borderWidth: 1,
+  },
+  adminCardLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  adminIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  adminCardTitle: { fontSize: 15, fontWeight: '700', color: '#991B1B' },
+  adminCardSub: { fontSize: 12, color: '#B91C1C', marginTop: 2 },
   logoutBtn: { marginTop: 24 },
 });
 

@@ -11,7 +11,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../types/navigation';
@@ -19,10 +22,12 @@ import { useAuth } from '../../context/AuthContext';
 import colors from '../../constants/colors';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
+import { isSmallDevice } from '../../utils/responsive';
 
 type NavProp = StackNavigationProp<AuthStackParamList, 'Login'>;
 
 export const LoginScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavProp>();
   const { login } = useAuth();
 
@@ -54,7 +59,21 @@ export const LoginScreen: React.FC = () => {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          {
+            paddingTop: Math.max(insets.top + 16, 24),
+            paddingBottom: Math.max(insets.bottom + 20, 32),
+          },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
       <View style={styles.heroSection}>
         <Text style={styles.appIcon}>🐾</Text>
         <Text style={styles.brandTitle}>PetCare</Text>
@@ -98,20 +117,38 @@ export const LoginScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 20, justifyContent: 'center', minHeight: '100%' },
-  heroSection: { alignItems: 'center', marginBottom: 32 },
-  appIcon: { fontSize: 56, marginBottom: 8 },
-  brandTitle: { fontSize: 32, fontWeight: '900', color: colors.primary, letterSpacing: -0.5 },
-  brandSubtitle: { fontSize: 14, color: colors.textSecondary, marginTop: 4 },
+  content: {
+    paddingHorizontal: isSmallDevice ? 16 : 24,
+    justifyContent: 'center',
+    flexGrow: 1,
+  },
+  heroSection: {
+    alignItems: 'center',
+    marginBottom: isSmallDevice ? 20 : 32,
+  },
+  appIcon: { fontSize: isSmallDevice ? 44 : 56, marginBottom: 6 },
+  brandTitle: {
+    fontSize: isSmallDevice ? 28 : 32,
+    fontWeight: '900',
+    color: colors.primary,
+    letterSpacing: -0.5,
+  },
+  brandSubtitle: {
+    fontSize: isSmallDevice ? 13 : 14,
+    color: colors.textSecondary,
+    marginTop: 4,
+    textAlign: 'center',
+  },
   formCard: {
     backgroundColor: colors.surface,
-    padding: 24,
+    padding: isSmallDevice ? 18 : 24,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: colors.border,
@@ -121,10 +158,10 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 3,
   },
-  welcomeText: { fontSize: 22, fontWeight: '800', color: colors.text },
-  instructionText: { fontSize: 14, color: colors.textSecondary, marginTop: 4, marginBottom: 20 },
+  welcomeText: { fontSize: isSmallDevice ? 20 : 22, fontWeight: '800', color: colors.text },
+  instructionText: { fontSize: 13, color: colors.textSecondary, marginTop: 4, marginBottom: 18 },
   loginBtn: { marginTop: 8 },
-  footerRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 20 },
+  footerRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 18, flexWrap: 'wrap' },
   footerText: { fontSize: 14, color: colors.textSecondary },
   signupText: { fontSize: 14, fontWeight: '700', color: colors.primary },
 });

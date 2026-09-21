@@ -55,6 +55,11 @@ const userSchema = new Schema<IUser>(
       default: 'owner' as UserRole,
     },
 
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+
     profileImage: {
       type: String,
       default: null,

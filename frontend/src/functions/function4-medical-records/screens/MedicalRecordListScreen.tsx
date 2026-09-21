@@ -11,6 +11,7 @@ import {
   StyleSheet,
   RefreshControl,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../../types/navigation';
@@ -22,11 +23,13 @@ import Button from '../../../components/common/Button';
 import Loading from '../../../components/common/Loading';
 import Badge from '../../../components/common/Badge';
 import { formatDate } from '../../../utils/formatDate';
+import { isSmallDevice } from '../../../utils/responsive';
 
 type RouteProps = RouteProp<RootStackParamList, 'MedicalRecordList'>;
 type NavProp = StackNavigationProp<RootStackParamList>;
 
 export const MedicalRecordListScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavProp>();
   const route = useRoute<RouteProps>();
   const petId = route.params?.petId;
@@ -75,7 +78,7 @@ export const MedicalRecordListScreen: React.FC = () => {
         </View>
 
         <Text style={styles.diagnosis}>{item.diagnosis}</Text>
-        <Text style={styles.subtext}>Patient: {petName} • Examined by {vetName}</Text>
+        <Text style={styles.subtext} numberOfLines={1}>Patient: {petName} • Examined by {vetName}</Text>
 
         {item.treatment ? (
           <Text style={styles.treatment} numberOfLines={2}>
@@ -93,10 +96,12 @@ export const MedicalRecordListScreen: React.FC = () => {
     );
   };
 
+  const horizontalPad = isSmallDevice ? 14 : 16;
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View>
+      <View style={[styles.header, { paddingHorizontal: horizontalPad, paddingTop: Math.max(insets.top + 8, 16) }]}>
+        <View style={{ flex: 1, marginRight: 10 }}>
           <Text style={styles.title}>Medical Timeline</Text>
           <Text style={styles.subtitle}>Diagnostic records, prescriptions & vaccines</Text>
         </View>
@@ -114,7 +119,13 @@ export const MedicalRecordListScreen: React.FC = () => {
           data={records}
           keyExtractor={(item) => item._id}
           renderItem={renderRecordItem}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[
+            styles.listContent,
+            {
+              paddingHorizontal: horizontalPad,
+              paddingBottom: Math.max(insets.bottom + 20, 32),
+            },
+          ]}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -147,14 +158,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 16,
     paddingBottom: 12,
   },
-  title: { fontSize: 24, fontWeight: '700', color: colors.text },
-  subtitle: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
-  listContent: { paddingHorizontal: 16, paddingBottom: 24 },
-  card: { padding: 16 },
+  title: { fontSize: isSmallDevice ? 22 : 24, fontWeight: '700', color: colors.text },
+  subtitle: { fontSize: isSmallDevice ? 12 : 13, color: colors.textSecondary, marginTop: 2 },
+  listContent: { paddingTop: 6 },
+  card: { padding: isSmallDevice ? 12 : 16, marginBottom: 10 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   dateBadge: {
     backgroundColor: colors.borderLight,
@@ -163,7 +172,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   dateText: { fontSize: 12, fontWeight: '600', color: colors.textSecondary },
-  diagnosis: { fontSize: 17, fontWeight: '700', color: colors.text, marginTop: 10 },
+  diagnosis: { fontSize: isSmallDevice ? 15 : 17, fontWeight: '700', color: colors.text, marginTop: 8 },
   subtext: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
   treatment: { fontSize: 13, color: colors.text, marginTop: 8, lineHeight: 18 },
   treatmentLabel: { fontWeight: '600', color: colors.textSecondary },
