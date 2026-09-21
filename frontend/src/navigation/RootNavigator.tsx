@@ -39,6 +39,9 @@ import BookServiceScreen from '../functions/function6-bookings-reviews/screens/B
 import MyBookingsScreen from '../functions/function6-bookings-reviews/screens/MyBookingsScreen';
 import AddReviewScreen from '../functions/function6-bookings-reviews/screens/AddReviewScreen';
 
+// Admin Screens
+import AdminManagementScreen from '../screens/admin/AdminManagementScreen';
+
 const Stack = createStackNavigator<RootStackParamList>();
 
 export const RootNavigator: React.FC = () => {
@@ -155,6 +158,11 @@ export const RootNavigator: React.FC = () => {
               name="AddReview"
               component={AddReviewScreen}
               options={{ title: 'Leave Feedback' }}
+            />
+            <Stack.Screen
+              name="AdminManagement"
+              component={AdminManagementScreen}
+              options={{ headerShown: false }}
             />
           </>
         )}

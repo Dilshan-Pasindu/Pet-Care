@@ -45,6 +45,22 @@ export const authService = {
   async logout(): Promise<void> {
     await storage.clearAll();
   },
+
+  // ─── Admin Management APIs ──────────────────────────────────
+  async getAllUsers(): Promise<IUser[]> {
+    const res = await api.get<ApiResponse<IUser[]>>('/auth/users');
+    return res.data.data || [];
+  },
+
+  async setUserStatus(userId: string, isActive: boolean): Promise<IUser> {
+    const res = await api.patch<ApiResponse<IUser>>(`/auth/users/${userId}/status`, { isActive });
+    return res.data.data!;
+  },
+
+  async setUserRole(userId: string, role: import('../types/models').UserRole): Promise<IUser> {
+    const res = await api.patch<ApiResponse<IUser>>(`/auth/users/${userId}/role`, { role });
+    return res.data.data!;
+  },
 };
 
 export default authService;
