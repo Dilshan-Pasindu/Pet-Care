@@ -13,6 +13,7 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../../types/navigation';
@@ -25,10 +26,12 @@ import Loading from '../../../components/common/Loading';
 import Badge from '../../../components/common/Badge';
 import PetAvatar from '../../../components/common/PetAvatar';
 import { calculateAge } from '../../../utils/formatDate';
+import { isSmallDevice } from '../../../utils/responsive';
 
 type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 export const PetListScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp>();
   const [pets, setPets] = useState<IPet[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -61,6 +64,8 @@ export const PetListScreen: React.FC = () => {
     return <Loading fullScreen message="Loading your pets..." />;
   }
 
+  const avatarSize = isSmallDevice ? 64 : 76;
+
   const renderPetItem = ({ item }: { item: IPet }) => (
     <Card
       onPress={() => navigation.navigate('PetDetail', { petId: item._id })}
@@ -71,19 +76,19 @@ export const PetListScreen: React.FC = () => {
         image={item.image}
         name={item.name}
         species={item.species}
-        size={76}
+        size={avatarSize}
         borderRadius={16}
         style={styles.petAvatar}
       />
       <View style={styles.petInfo}>
         <View style={styles.nameRow}>
-          <Text style={styles.petName}>{item.name}</Text>
+          <Text style={styles.petName} numberOfLines={1}>{item.name}</Text>
           <Badge
             label={item.gender}
             variant={item.gender === 'male' ? 'primary' : 'warning'}
           />
         </View>
-        <Text style={styles.petBreed}>
+        <Text style={styles.petBreed} numberOfLines={1}>
           {item.species} {item.breed ? `• ${item.breed}` : ''}
         </Text>
         <Text style={styles.petAge}>{calculateAge(item.dateOfBirth)}</Text>
@@ -94,10 +99,12 @@ export const PetListScreen: React.FC = () => {
     </Card>
   );
 
+  const horizontalPad = isSmallDevice ? 14 : 20;
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View>
+      <View style={[styles.header, { paddingHorizontal: horizontalPad, paddingTop: Math.max(insets.top + 8, 16) }]}>
+        <View style={{ flex: 1, marginRight: 10 }}>
           <Text style={styles.title}>My Pets</Text>
           <Text style={styles.subtitle}>Manage healthcare profiles for your companions</Text>
         </View>
@@ -112,7 +119,13 @@ export const PetListScreen: React.FC = () => {
         data={pets}
         keyExtractor={(item) => item._id}
         renderItem={renderPetItem}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          {
+            paddingHorizontal: horizontalPad,
+            paddingBottom: Math.max(insets.bottom + 20, 32),
+          },
+        ]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -147,57 +160,54 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 16,
     paddingBottom: 12,
   },
   title: {
-    fontSize: 24,
+    fontSize: isSmallDevice ? 22 : 24,
     fontWeight: '700',
     color: colors.text,
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: isSmallDevice ? 12 : 13,
     color: colors.textSecondary,
     marginTop: 2,
   },
   listContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 24,
+    paddingTop: 8,
   },
   petCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 14,
+    padding: isSmallDevice ? 10 : 14,
+    marginBottom: 10,
   },
   petAvatar: {
-    width: 76,
-    height: 76,
-    borderRadius: 16,
     backgroundColor: colors.borderLight,
   },
   petInfo: {
     flex: 1,
-    marginLeft: 16,
+    marginLeft: isSmallDevice ? 12 : 16,
   },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 4,
+    gap: 6,
   },
   petName: {
-    fontSize: 17,
+    fontSize: isSmallDevice ? 15 : 17,
     fontWeight: '700',
     color: colors.text,
+    flexShrink: 1,
   },
   petBreed: {
-    fontSize: 14,
+    fontSize: isSmallDevice ? 13 : 14,
     color: colors.textSecondary,
     marginBottom: 2,
   },
   petAge: {
-    fontSize: 13,
+    fontSize: isSmallDevice ? 12 : 13,
     color: colors.textSecondary,
   },
   petWeight: {

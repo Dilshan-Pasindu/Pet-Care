@@ -14,6 +14,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../../types/navigation';
@@ -25,6 +26,7 @@ import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import Loading from '../../../components/common/Loading';
 import Badge from '../../../components/common/Badge';
+import { isSmallDevice } from '../../../utils/responsive';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
 

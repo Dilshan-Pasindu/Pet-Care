@@ -11,7 +11,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../../types/navigation';
@@ -23,11 +26,13 @@ import colors from '../../../constants/colors';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 import Loading from '../../../components/common/Loading';
+import { isSmallDevice } from '../../../utils/responsive';
 
 type RouteProps = RouteProp<RootStackParamList, 'AddMedicalRecord'>;
 type NavProp = StackNavigationProp<RootStackParamList>;
 
 export const AddMedicalRecordScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavProp>();
   const route = useRoute<RouteProps>();
   const preselectedPetId = route.params?.petId;
@@ -133,118 +138,135 @@ export const AddMedicalRecordScreen: React.FC = () => {
   if (loading) return <Loading fullScreen message="Setting up medical form..." />;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.sectionHeading}>1. Patient Pet</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-        {pets.map((p) => (
-          <TouchableOpacity
-            key={p._id}
-            style={[styles.chip, selectedPetId === p._id && styles.chipActive]}
-            onPress={() => setSelectedPetId(p._id)}
-          >
-            <Text style={[styles.chipText, selectedPetId === p._id && styles.chipTextActive]}>
-              🐾 {p.name}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={[
+          styles.content,
+          {
+            paddingHorizontal: isSmallDevice ? 14 : 16,
+            paddingBottom: Math.max(insets.bottom + 24, 40),
+          },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Text style={styles.sectionHeading}>1. Patient Pet</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+          {pets.map((p) => (
+            <TouchableOpacity
+              key={p._id}
+              style={[styles.chip, selectedPetId === p._id && styles.chipActive]}
+              onPress={() => setSelectedPetId(p._id)}
+            >
+              <Text style={[styles.chipText, selectedPetId === p._id && styles.chipTextActive]}>
+                🐾 {p.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
-      <Text style={styles.sectionHeading}>2. Examining Veterinarian</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-        {vets.map((v) => (
-          <TouchableOpacity
-            key={v._id}
-            style={[styles.chip, selectedVetId === v._id && styles.chipActive]}
-            onPress={() => setSelectedVetId(v._id)}
-          >
-            <Text style={[styles.chipText, selectedVetId === v._id && styles.chipTextActive]}>
-              👨‍⚕️ {v.name}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+        <Text style={styles.sectionHeading}>2. Examining Veterinarian</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+          {vets.map((v) => (
+            <TouchableOpacity
+              key={v._id}
+              style={[styles.chip, selectedVetId === v._id && styles.chipActive]}
+              onPress={() => setSelectedVetId(v._id)}
+            >
+              <Text style={[styles.chipText, selectedVetId === v._id && styles.chipTextActive]}>
+                👨‍⚕️ {v.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
-      <Text style={styles.sectionHeading}>3. Clinical Findings</Text>
-      <Input
-        label="Examination Date (YYYY-MM-DD)"
-        value={recordDate}
-        onChangeText={setRecordDate}
-      />
-      <Input
-        label="Diagnosis *"
-        placeholder="e.g. Mild ear infection, seasonal allergy, annual checkup"
-        value={diagnosis}
-        onChangeText={setDiagnosis}
-      />
-      <Input
-        label="Treatment / Procedures"
-        placeholder="e.g. Cleansed ear canal, administered antibiotic drops"
-        value={treatment}
-        onChangeText={setTreatment}
-        multiline
-        numberOfLines={2}
-      />
-
-      <Text style={styles.sectionHeading}>4. Prescribed Medication (Optional)</Text>
-      <Input label="Medicine Name" placeholder="e.g. Amoxicillin" value={medName} onChangeText={setMedName} />
-      <View style={styles.row}>
+        <Text style={styles.sectionHeading}>3. Clinical Findings</Text>
         <Input
-          label="Dosage"
-          placeholder="e.g. 50mg"
-          value={medDosage}
-          onChangeText={setMedDosage}
-          containerStyle={styles.halfCol}
+          label="Examination Date (YYYY-MM-DD)"
+          value={recordDate}
+          onChangeText={setRecordDate}
         />
         <Input
-          label="Duration"
-          placeholder="e.g. 7 days"
-          value={medDuration}
-          onChangeText={setMedDuration}
-          containerStyle={styles.halfCol}
+          label="Diagnosis *"
+          placeholder="e.g. Mild ear infection, seasonal allergy, annual checkup"
+          value={diagnosis}
+          onChangeText={setDiagnosis}
         />
-      </View>
+        <Input
+          label="Treatment / Procedures"
+          placeholder="e.g. Cleansed ear canal, administered antibiotic drops"
+          value={treatment}
+          onChangeText={setTreatment}
+          multiline
+          numberOfLines={2}
+        />
 
-      <Text style={styles.sectionHeading}>5. Vaccination (Optional)</Text>
-      <Input
-        label="Vaccine Name"
-        placeholder="e.g. Rabies, DHPP Core Vaccine"
-        value={vaccineName}
-        onChangeText={setVaccineName}
-      />
-      <Input
-        label="Next Due Date (YYYY-MM-DD)"
-        placeholder="e.g. 2027-10-15"
-        value={vaccineDue}
-        onChangeText={setVaccineDue}
-      />
+        <Text style={styles.sectionHeading}>4. Prescribed Medication (Optional)</Text>
+        <Input label="Medicine Name" placeholder="e.g. Amoxicillin" value={medName} onChangeText={setMedName} />
+        <View style={styles.row}>
+          <Input
+            label="Dosage"
+            placeholder="e.g. 50mg"
+            value={medDosage}
+            onChangeText={setMedDosage}
+            containerStyle={styles.halfCol}
+          />
+          <Input
+            label="Duration"
+            placeholder="e.g. 7 days"
+            value={medDuration}
+            onChangeText={setMedDuration}
+            containerStyle={styles.halfCol}
+          />
+        </View>
 
-      <Input
-        label="Additional Clinical Notes"
-        placeholder="Follow-up instructions or observations"
-        value={notes}
-        onChangeText={setNotes}
-        multiline
-        numberOfLines={3}
-      />
+        <Text style={styles.sectionHeading}>5. Vaccination (Optional)</Text>
+        <Input
+          label="Vaccine Name"
+          placeholder="e.g. Rabies, DHPP Core Vaccine"
+          value={vaccineName}
+          onChangeText={setVaccineName}
+        />
+        <Input
+          label="Next Due Date (YYYY-MM-DD)"
+          placeholder="e.g. 2027-10-15"
+          value={vaccineDue}
+          onChangeText={setVaccineDue}
+        />
 
-      <Button
-        title="Save Clinical Record"
-        onPress={handleSubmit}
-        loading={submitting}
-        style={styles.saveBtn}
-      />
-    </ScrollView>
+        <Input
+          label="Additional Clinical Notes"
+          placeholder="Follow-up instructions or observations"
+          value={notes}
+          onChangeText={setNotes}
+          multiline
+          numberOfLines={3}
+        />
+
+        <Button
+          title="Save Clinical Record"
+          onPress={handleSubmit}
+          loading={submitting}
+          style={styles.saveBtn}
+        />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 16, paddingBottom: 40 },
+  content: { paddingVertical: 16 },
   sectionHeading: { fontSize: 15, fontWeight: '700', color: colors.text, marginTop: 14, marginBottom: 8 },
   horizontalScroll: { flexDirection: 'row', marginBottom: 12 },
   chip: {
     paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingHorizontal: isSmallDevice ? 12 : 16,
     borderRadius: 12,
     backgroundColor: colors.surface,
     borderWidth: 1.5,
@@ -254,7 +276,7 @@ const styles = StyleSheet.create({
   chipActive: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
   chipText: { fontSize: 13, fontWeight: '600', color: colors.textSecondary },
   chipTextActive: { color: colors.primary },
-  row: { flexDirection: 'row', gap: 12 },
+  row: { flexDirection: 'row', gap: 10 },
   halfCol: { flex: 1 },
   saveBtn: { marginTop: 16 },
 });

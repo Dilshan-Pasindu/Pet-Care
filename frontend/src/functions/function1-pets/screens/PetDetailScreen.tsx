@@ -12,6 +12,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../../../types/navigation';
@@ -24,11 +25,13 @@ import Loading from '../../../components/common/Loading';
 import Badge from '../../../components/common/Badge';
 import PetAvatar from '../../../components/common/PetAvatar';
 import { formatDate, calculateAge } from '../../../utils/formatDate';
+import { isSmallDevice, verticalScale } from '../../../utils/responsive';
 
 type RouteProps = RouteProp<RootStackParamList, 'PetDetail'>;
 type NavProp = StackNavigationProp<RootStackParamList>;
 
 export const PetDetailScreen: React.FC = () => {
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavProp>();
   const route = useRoute<RouteProps>();
   const { petId } = route.params;
@@ -81,23 +84,32 @@ export const PetDetailScreen: React.FC = () => {
   if (loading) return <Loading fullScreen message="Loading pet profile..." />;
   if (!pet) return null;
 
+  const avatarSize = isSmallDevice ? 110 : 130;
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[
+        styles.content,
+        { paddingBottom: Math.max(insets.bottom + 24, 40) },
+      ]}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.heroContainer}>
         <PetAvatar
           imageUrl={pet.imageUrl}
           image={pet.image}
           name={pet.name}
           species={pet.species}
-          size={130}
-          borderRadius={65}
+          size={avatarSize}
+          borderRadius={avatarSize / 2}
           style={styles.heroAvatar}
         />
       </View>
 
       <View style={styles.headerCard}>
         <View style={styles.titleRow}>
-          <Text style={styles.name}>{pet.name}</Text>
+          <Text style={styles.name} numberOfLines={1}>{pet.name}</Text>
           <Badge label={pet.gender} variant={pet.gender === 'male' ? 'primary' : 'warning'} />
         </View>
         <Text style={styles.species}>{pet.species} {pet.breed ? `(${pet.breed})` : ''}</Text>
@@ -106,17 +118,17 @@ export const PetDetailScreen: React.FC = () => {
       <Card style={styles.statsCard}>
         <View style={styles.statCol}>
           <Text style={styles.statLabel}>Age</Text>
-          <Text style={styles.statVal}>{calculateAge(pet.dateOfBirth)}</Text>
+          <Text style={styles.statVal} numberOfLines={1}>{calculateAge(pet.dateOfBirth)}</Text>
         </View>
         <View style={styles.statDivider} />
         <View style={styles.statCol}>
           <Text style={styles.statLabel}>Weight</Text>
-          <Text style={styles.statVal}>{pet.weight ? `${pet.weight} kg` : 'N/A'}</Text>
+          <Text style={styles.statVal} numberOfLines={1}>{pet.weight ? `${pet.weight} kg` : 'N/A'}</Text>
         </View>
         <View style={styles.statDivider} />
         <View style={styles.statCol}>
           <Text style={styles.statLabel}>Birthday</Text>
-          <Text style={styles.statVal}>{formatDate(pet.dateOfBirth)}</Text>
+          <Text style={styles.statVal} numberOfLines={1}>{formatDate(pet.dateOfBirth)}</Text>
         </View>
       </Card>
 
@@ -165,10 +177,10 @@ export const PetDetailScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  content: { paddingBottom: 40 },
+  content: {},
   heroContainer: {
     width: '100%',
-    height: 180,
+    height: isSmallDevice ? 150 : 180,
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
@@ -184,39 +196,40 @@ const styles = StyleSheet.create({
   },
   headerCard: {
     backgroundColor: colors.surface,
-    padding: 20,
+    padding: isSmallDevice ? 16 : 20,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  name: { fontSize: 26, fontWeight: '800', color: colors.text },
-  species: { fontSize: 16, color: colors.textSecondary, marginTop: 4 },
+  titleRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
+  name: { fontSize: isSmallDevice ? 22 : 26, fontWeight: '800', color: colors.text, flexShrink: 1 },
+  species: { fontSize: isSmallDevice ? 14 : 16, color: colors.textSecondary, marginTop: 4 },
   statsCard: {
-    marginHorizontal: 16,
-    marginTop: 16,
+    marginHorizontal: isSmallDevice ? 12 : 16,
+    marginTop: 14,
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 18,
+    paddingVertical: isSmallDevice ? 14 : 18,
+    paddingHorizontal: 8,
   },
-  statCol: { alignItems: 'center' },
-  statLabel: { fontSize: 12, color: colors.textSecondary, marginBottom: 4 },
-  statVal: { fontSize: 15, fontWeight: '700', color: colors.text },
+  statCol: { flex: 1, alignItems: 'center' },
+  statLabel: { fontSize: isSmallDevice ? 11 : 12, color: colors.textSecondary, marginBottom: 4 },
+  statVal: { fontSize: isSmallDevice ? 13 : 15, fontWeight: '700', color: colors.text, textAlign: 'center' },
   statDivider: { width: 1, height: '80%', backgroundColor: colors.border },
-  sectionCard: { marginHorizontal: 16, marginTop: 12 },
+  sectionCard: { marginHorizontal: isSmallDevice ? 12 : 16, marginTop: 12 },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: 8 },
   sectionBody: { fontSize: 14, color: colors.textSecondary, lineHeight: 22 },
   shortcutsRow: {
     flexDirection: 'row',
-    marginHorizontal: 16,
+    marginHorizontal: isSmallDevice ? 12 : 16,
     marginTop: 12,
-    gap: 12,
+    gap: 10,
   },
   shortcutBtn: { flex: 1 },
   actionRow: {
     flexDirection: 'row',
-    marginHorizontal: 16,
+    marginHorizontal: isSmallDevice ? 12 : 16,
     marginTop: 20,
-    gap: 12,
+    gap: 10,
   },
   editBtn: { flex: 2 },
   deleteBtn: { flex: 1 },
