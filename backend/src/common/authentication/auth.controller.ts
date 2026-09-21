@@ -21,7 +21,7 @@ export const register = async (
       email: string;
       password: string;
       phone?: string;
-      role?: string;
+      role?: import('../../types/models').UserRole;
     });
     sendSuccess(res, 201, 'Account created successfully.', { user, token });
   } catch (error) {
