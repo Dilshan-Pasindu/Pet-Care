@@ -1,0 +1,22 @@
+{
+  "name": "petcare",
+  "version": "1.0.0",
+  "description": "PetCare — Pet Healthcare & Services Management Mobile Application",
+  "private": true,
+  "scripts": {
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npx expo start",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "test": "cd backend && npm test"
+  },
+  "keywords": [
+    "petcare",
+    "react-native",
+    "expo",
+    "nodejs",
+    "express",
+    "mongodb"
+  ],
+  "author": "PetCare Development Team",
+  "license": "MIT"
+}
