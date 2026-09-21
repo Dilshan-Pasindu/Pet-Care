@@ -9,7 +9,7 @@
 import Pet from './pet.model';
 import { IPet, UserRole } from '../../types/models';
 
-interface CreatePetInput {
+export interface CreatePetInput {
   name: string;
   species: string;
   breed?: string;
@@ -17,10 +17,13 @@ interface CreatePetInput {
   dateOfBirth?: string;
   weight?: number;
   description?: string;
+  imageUrl?: string | null;
+  image?: string | null;
 }
 
-interface UpdatePetInput extends Partial<CreatePetInput> {
-  image?: string;
+export interface UpdatePetInput extends Partial<CreatePetInput> {
+  imageUrl?: string | null;
+  image?: string | null;
 }
 
 export const createPet = async (
@@ -28,7 +31,13 @@ export const createPet = async (
   ownerId: string,
   imageUrl: string | null = null
 ): Promise<IPet> => {
-  const pet = await Pet.create({ ...petData, ownerId, image: imageUrl });
+  const finalImageUrl = imageUrl || petData.imageUrl || petData.image || null;
+  const pet = await Pet.create({
+    ...petData,
+    ownerId,
+    imageUrl: finalImageUrl,
+    image: finalImageUrl,
+  });
   return pet;
 };
 
@@ -71,7 +80,11 @@ export const updatePet = async (
   }
 
   const updates: Record<string, unknown> = { ...updateData };
-  if (imageUrl) updates.image = imageUrl;
+  const finalImageUrl = imageUrl || updateData.imageUrl || updateData.image;
+  if (finalImageUrl !== undefined) {
+    updates.imageUrl = finalImageUrl;
+    updates.image = finalImageUrl;
+  }
 
   const updated = await Pet.findByIdAndUpdate(petId, updates, { new: true, runValidators: true });
   return updated as IPet;
