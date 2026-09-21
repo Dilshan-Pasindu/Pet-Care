@@ -1,50 +1,38 @@
 /**
- * auth.validation.js
+ * common/authentication/auth.validation.ts
  * ─────────────────────────────────────────────────────────────
- * File: backend/src/common/authentication/auth.validation.js
+ * File: backend/src/common/authentication/auth.validation.ts
  * Owner: Common Group Function — Authentication
  * ─────────────────────────────────────────────────────────────
- *
- * Purpose:
- *   Input validation rules using express-validator.
- *   These rules are applied as middleware in auth.routes.js
- *   before the controller runs.
- *
- * How it works:
- *   1. Route uses validateRegister or validateLogin as middleware
- *   2. express-validator checks the request body
- *   3. handleValidationErrors checks if any errors exist
- *   4. If errors exist, returns 400 with error details
- *   5. If no errors, calls next() to reach the controller
- * ─────────────────────────────────────────────────────────────
  */
 
-const { body, validationResult } = require('express-validator');
-const { sendError } = require('../../utils/response');
+import { Request, Response, NextFunction } from 'express';
+import { body, ValidationChain, validationResult } from 'express-validator';
+import { sendError } from '../../utils/response';
 
-/**
- * Middleware: Check if any validation errors exist and return them.
- * Must be the last item in the validation chain array.
- */
-const handleValidationErrors = (req, res, next) => {
+type ValidationMiddleware = ValidationChain | ((req: Request, res: Response, next: NextFunction) => void);
+
+const handleValidationErrors = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
-    return sendError(
+    sendError(
       res,
       400,
       'Validation failed. Please check your input.',
-      errors.array().map((err) => ({ field: err.path, message: err.msg }))
+      errors.array().map((err) => ({ field: (err as { path: string }).path, message: err.msg as string }))
     );
+    return;
   }
 
   next();
 };
 
-/**
- * Validation rules for POST /api/auth/register
- */
-const validateRegister = [
+export const validateRegister: ValidationMiddleware[] = [
   body('name')
     .trim()
     .notEmpty().withMessage('Name is required')
@@ -63,7 +51,7 @@ const validateRegister = [
   body('phone')
     .optional()
     .trim()
-    .isMobilePhone().withMessage('Please provide a valid phone number'),
+    .isMobilePhone('any').withMessage('Please provide a valid phone number'),
 
   body('role')
     .optional()
@@ -73,10 +61,7 @@ const validateRegister = [
   handleValidationErrors,
 ];
 
-/**
- * Validation rules for POST /api/auth/login
- */
-const validateLogin = [
+export const validateLogin: ValidationMiddleware[] = [
   body('email')
     .trim()
     .notEmpty().withMessage('Email is required')
@@ -89,10 +74,7 @@ const validateLogin = [
   handleValidationErrors,
 ];
 
-/**
- * Validation rules for PUT /api/auth/me (profile update)
- */
-const validateProfileUpdate = [
+export const validateProfileUpdate: ValidationMiddleware[] = [
   body('name')
     .optional()
     .trim()
@@ -101,9 +83,7 @@ const validateProfileUpdate = [
   body('phone')
     .optional()
     .trim()
-    .isMobilePhone().withMessage('Please provide a valid phone number'),
+    .isMobilePhone('any').withMessage('Please provide a valid phone number'),
 
   handleValidationErrors,
 ];
-
-module.exports = { validateRegister, validateLogin, validateProfileUpdate };
