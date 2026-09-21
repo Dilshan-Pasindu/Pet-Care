@@ -59,7 +59,10 @@ export const getAppointmentById = async (
 
   if (!appointment) throw Object.assign(new Error('Appointment not found.'), { statusCode: 404 });
 
-  if (userRole === 'owner' && appointment.ownerId.toString() !== userId) {
+  const owner = appointment.ownerId as any;
+  const ownerIdString = owner && owner._id ? owner._id.toString() : String(owner);
+
+  if (userRole === 'owner' && ownerIdString !== userId.toString()) {
     throw Object.assign(new Error('You do not have permission to view this appointment.'), { statusCode: 403 });
   }
 
