@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import colors from '../../constants/colors';
 import { config } from '../../constants/config';
+import { PawPrint } from 'lucide-react-native';
 
 interface PetAvatarProps {
   imageUrl?: string | null;
@@ -52,8 +53,8 @@ export const PetAvatar: React.FC<PetAvatarProps> = ({
 
   const finalUri = resolveUri(rawUrl);
 
-  // Determine friendly species emoji icon
-  const getSpeciesEmoji = (spec: string): string => {
+  // Determine friendly species emoji icon or null for vector PawPrint
+  const getSpeciesEmoji = (spec: string): string | null => {
     const s = spec.toLowerCase().trim();
     if (s.includes('dog') || s.includes('puppy') || s.includes('canine')) return '🐶';
     if (s.includes('cat') || s.includes('kitten') || s.includes('feline')) return '🐱';
@@ -62,11 +63,12 @@ export const PetAvatar: React.FC<PetAvatarProps> = ({
     if (s.includes('hamster') || s.includes('guinea')) return '🐹';
     if (s.includes('fish')) return '🐠';
     if (s.includes('turtle') || s.includes('reptile')) return '🐢';
-    return '🐾';
+    return null;
   };
 
   const effectiveRadius = borderRadius !== undefined ? borderRadius : size / 2;
   const emojiSize = Math.max(18, Math.round(size * 0.45));
+  const speciesEmoji = getSpeciesEmoji(species);
 
   if (finalUri && !imageError) {
     return (
@@ -101,7 +103,11 @@ export const PetAvatar: React.FC<PetAvatarProps> = ({
         style,
       ]}
     >
-      <Text style={{ fontSize: emojiSize }}>{getSpeciesEmoji(species)}</Text>
+      {speciesEmoji ? (
+        <Text style={{ fontSize: emojiSize }}>{speciesEmoji}</Text>
+      ) : (
+        <PawPrint size={Math.round(size * 0.48)} color={colors.primary} />
+      )}
       {size >= 70 && name ? (
         <Text style={styles.nameInitial} numberOfLines={1}>
           {name.charAt(0).toUpperCase()}
