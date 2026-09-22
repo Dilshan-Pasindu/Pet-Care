@@ -49,6 +49,13 @@ export type MainTabParamList = {
   ProfileTab: undefined;
 };
 
+export type ServiceCenterTabParamList = {
+  CenterDashboardTab: undefined;
+  CenterServicesTab: undefined;
+  CenterBookingsTab: undefined;
+  CenterProfileTab: undefined;
+};
+
 export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
@@ -66,4 +73,5 @@ export type RootStackParamList = {
   MyBookings: undefined;
   AddReview: { serviceId?: string; vetId?: string; title?: string };
   AdminManagement: undefined;
+  ServiceCenterAddEditService: { serviceId?: string };
 };

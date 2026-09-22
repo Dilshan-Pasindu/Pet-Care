@@ -35,13 +35,13 @@ export const RegisterScreen: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
-  const [role, setRole] = useState<'owner' | 'veterinarian'>('owner');
+  const [role, setRole] = useState<'owner' | 'veterinarian' | 'service_center'>('owner');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
-    if (!name.trim()) errs.name = 'Full name is required';
+    if (!name.trim()) errs.name = role === 'service_center' ? 'Business name is required' : 'Full name is required';
     if (!email.trim()) errs.email = 'Email address is required';
     else if (!/\S+@\S+\.\S+/.test(email)) errs.email = 'Invalid email format';
     if (!password || password.length < 6) errs.password = 'Password must be at least 6 characters';
@@ -88,9 +88,41 @@ export const RegisterScreen: React.FC = () => {
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>Join PetCare to manage your pet health & wellness</Text>
 
+          <View style={styles.roleContainer}>
+            <Text style={styles.roleLabel}>Account Type:</Text>
+            <View style={styles.roleRow}>
+              <TouchableOpacity
+                style={[styles.roleBtn, role === 'owner' && styles.roleBtnActive]}
+                onPress={() => setRole('owner')}
+              >
+                <Text style={[styles.roleText, role === 'owner' && styles.roleTextActive]}>
+                  🐶 Customer
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.roleBtn, role === 'veterinarian' && styles.roleBtnActive]}
+                onPress={() => setRole('veterinarian')}
+              >
+                <Text style={[styles.roleText, role === 'veterinarian' && styles.roleTextActive]}>
+                  👨‍⚕️ Veterinarian
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.roleBtn, role === 'service_center' && styles.roleBtnActive]}
+                onPress={() => setRole('service_center')}
+              >
+                <Text style={[styles.roleText, role === 'service_center' && styles.roleTextActive]}>
+                  🏢 Service Center
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
           <Input
-            label="Full Name *"
-            placeholder="Jane Doe"
+            label={role === 'service_center' ? 'Business Name *' : 'Full Name *'}
+            placeholder={role === 'service_center' ? 'Paws Spa & Grooming' : 'Jane Doe'}
             value={name}
             onChangeText={setName}
             error={errors.name}
@@ -122,29 +154,6 @@ export const RegisterScreen: React.FC = () => {
             value={phone}
             onChangeText={setPhone}
           />
-
-          <View style={styles.roleContainer}>
-            <Text style={styles.roleLabel}>I am a:</Text>
-            <View style={styles.roleRow}>
-              <TouchableOpacity
-                style={[styles.roleBtn, role === 'owner' && styles.roleBtnActive]}
-                onPress={() => setRole('owner')}
-              >
-                <Text style={[styles.roleText, role === 'owner' && styles.roleTextActive]}>
-                  🐶 Pet Owner
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.roleBtn, role === 'veterinarian' && styles.roleBtnActive]}
-                onPress={() => setRole('veterinarian')}
-              >
-                <Text style={[styles.roleText, role === 'veterinarian' && styles.roleTextActive]}>
-                  👨‍⚕️ Veterinarian
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
 
           <Button
             title="Create Account"
