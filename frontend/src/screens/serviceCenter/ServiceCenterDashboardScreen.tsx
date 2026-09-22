@@ -1,6 +1,6 @@
 /**
  * screens/serviceCenter/ServiceCenterDashboardScreen.tsx
- * Dedicated Operations Dashboard for Pet-Care Service Centers
+ * Premium Service Center Dashboard — Healing Teal Theme
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -27,6 +27,9 @@ import {
   Globe,
   MapPin,
   ChevronRight,
+  CheckCircle2,
+  Star,
+  TrendingUp,
 } from 'lucide-react-native';
 import { RootStackParamList } from '../../types/navigation';
 import { useAuth } from '../../context/AuthContext';
@@ -41,6 +44,11 @@ import { isSmallDevice } from '../../utils/responsive';
 import { openGoogleMapsDirections, makePhoneCall, openWebsite } from '../../utils/linking';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
+
+const SC_ACCENT = '#00B5A3';
+const SC_LIGHT = '#E0F8F5';
+const SC_DARK = '#008F80';
+const SC_HEADER = '#007A6D';
 
 export const ServiceCenterDashboardScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -71,14 +79,8 @@ export const ServiceCenterDashboardScreen: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, [loadDashboardData]);
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    loadDashboardData();
-  };
+  useEffect(() => { loadDashboardData(); }, [loadDashboardData]);
+  const onRefresh = () => { setRefreshing(true); loadDashboardData(); };
 
   if (loading && !refreshing) {
     return <Loading fullScreen message="Loading Service Center portal..." />;
@@ -87,224 +89,411 @@ export const ServiceCenterDashboardScreen: React.FC = () => {
   const pendingBookings = bookings.filter((b) => b.status === 'pending');
   const confirmedBookings = bookings.filter((b) => b.status === 'confirmed');
   const completedBookings = bookings.filter((b) => b.status === 'completed');
+  const businessName = profile?.name || user?.name || 'Pet-Care Center';
+  const firstWord = businessName.split(' ')[0];
 
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={[
-        styles.content,
-        {
-          paddingTop: Math.max(insets.top + 8, 16),
-          paddingBottom: Math.max(insets.bottom + 24, 32),
-        },
-      ]}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
-      }
+      contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 24, 36) }}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[SC_ACCENT]} tintColor={SC_ACCENT} />}
+      showsVerticalScrollIndicator={false}
     >
-      {/* Header Banner */}
-      <View style={styles.header}>
-        <View style={styles.headerTextCol}>
-          <Text style={styles.welcomeText}>Welcome,</Text>
-          <Text style={styles.businessName} numberOfLines={1}>
-            {profile?.name || user?.name || 'Pet-Care Center'}
-          </Text>
-          <Badge label="🏢 Pet-Care Service Center" variant="primary" />
-        </View>
-      </View>
+      {/* ── Teal Hero Header ── */}
+      <View style={[styles.tealHeader, { paddingTop: Math.max(insets.top + 10, 24) }]}>
+        <View style={styles.headerDecor1} />
+        <View style={styles.headerDecor2} />
 
-      {/* Business Snapshot Card */}
-      <Card style={styles.bizCard}>
-        <View style={styles.bizHeader}>
-          <Building2 size={20} color={colors.primary} />
-          <Text style={styles.bizTitle}>Business Location & Contact</Text>
-        </View>
-
-        <View style={styles.bizDetails}>
+        <View style={styles.headerTopRow}>
+          <View style={styles.centerBadge}>
+            <Building2 size={13} color="#FFFFFF" strokeWidth={2.5} />
+            <Text style={styles.centerBadgeText}>PET-CARE CENTER</Text>
+          </View>
           <TouchableOpacity
-            style={styles.bizRow}
-            onPress={() =>
-              openGoogleMapsDirections({
-                latitude: profile?.latitude,
-                longitude: profile?.longitude,
-                address: profile?.address ? `${profile.address}, ${profile.city}` : undefined,
-                name: profile?.name,
-              })
-            }
+            style={styles.addServiceBtn}
+            onPress={() => navigation.navigate('ServiceCenterAddEditService', {})}
           >
-            <MapPin size={16} color={colors.primary} />
-            <Text style={styles.bizRowText} numberOfLines={1}>
-              {profile?.address ? `${profile.address}, ${profile.city}` : 'Add location address'}
-            </Text>
-            <Text style={styles.linkAction}>Directions →</Text>
+            <PlusCircle size={15} color={SC_ACCENT} strokeWidth={2.5} />
+            <Text style={styles.addServiceBtnText}>Add Service</Text>
           </TouchableOpacity>
-
-          {profile?.phone ? (
-            <TouchableOpacity style={styles.bizRow} onPress={() => makePhoneCall(profile.phone)}>
-              <Phone size={16} color="#059669" />
-              <Text style={styles.bizRowText}>{profile.phone}</Text>
-              <Text style={styles.linkAction}>Call</Text>
-            </TouchableOpacity>
-          ) : null}
-
-          {profile?.website ? (
-            <TouchableOpacity style={styles.bizRow} onPress={() => openWebsite(profile.website)}>
-              <Globe size={16} color="#2563EB" />
-              <Text style={styles.bizRowText} numberOfLines={1}>
-                {profile.website}
-              </Text>
-              <Text style={styles.linkAction}>Visit</Text>
-            </TouchableOpacity>
-          ) : null}
         </View>
-      </Card>
 
-      {/* Operational Metrics */}
-      <Text style={styles.sectionHeading}>Business Overview</Text>
-      <View style={styles.metricsGrid}>
-        <Card style={[styles.metricCard, { borderLeftColor: colors.primary, borderLeftWidth: 4 }]}>
-          <Scissors size={24} color={colors.primary} />
-          <Text style={styles.metricVal}>{services.length}</Text>
-          <Text style={styles.metricLabel}>Services Listed</Text>
-        </Card>
+        <Text style={styles.welcomeLabel}>Welcome back,</Text>
+        <Text style={styles.businessName} numberOfLines={1}>{businessName}</Text>
 
-        <Card style={[styles.metricCard, { borderLeftColor: '#D97706', borderLeftWidth: 4 }]}>
-          <Clock size={24} color="#D97706" />
-          <Text style={styles.metricVal}>{pendingBookings.length}</Text>
-          <Text style={styles.metricLabel}>Pending Requests</Text>
-        </Card>
-
-        <Card style={[styles.metricCard, { borderLeftColor: '#2563EB', borderLeftWidth: 4 }]}>
-          <CalendarCheck2 size={24} color="#2563EB" />
-          <Text style={styles.metricVal}>{confirmedBookings.length}</Text>
-          <Text style={styles.metricLabel}>Confirmed Visits</Text>
-        </Card>
-
-        <Card style={[styles.metricCard, { borderLeftColor: '#059669', borderLeftWidth: 4 }]}>
-          <Sparkles size={24} color="#059669" />
-          <Text style={styles.metricVal}>{completedBookings.length}</Text>
-          <Text style={styles.metricLabel}>Completed</Text>
-        </Card>
+        {/* Metric Strip */}
+        <View style={styles.metricStrip}>
+          <View style={styles.metricStripItem}>
+            <Text style={styles.metricStripVal}>{services.length}</Text>
+            <Text style={styles.metricStripLabel}>Services</Text>
+          </View>
+          <View style={styles.metricStripDivider} />
+          <View style={styles.metricStripItem}>
+            <Text style={styles.metricStripVal}>{pendingBookings.length}</Text>
+            <Text style={styles.metricStripLabel}>Pending</Text>
+          </View>
+          <View style={styles.metricStripDivider} />
+          <View style={styles.metricStripItem}>
+            <Text style={styles.metricStripVal}>{confirmedBookings.length}</Text>
+            <Text style={styles.metricStripLabel}>Confirmed</Text>
+          </View>
+          <View style={styles.metricStripDivider} />
+          <View style={styles.metricStripItem}>
+            <Text style={styles.metricStripVal}>{completedBookings.length}</Text>
+            <Text style={styles.metricStripLabel}>Done</Text>
+          </View>
+        </View>
       </View>
 
-      {/* Quick Actions */}
-      <Text style={styles.sectionHeading}>Quick Actions</Text>
-      <View style={styles.actionsRow}>
-        <TouchableOpacity
-          style={styles.actionBtnPrimary}
-          onPress={() => navigation.navigate('ServiceCenterAddEditService', {})}
-        >
-          <PlusCircle size={20} color="#FFFFFF" />
-          <Text style={styles.actionBtnPrimaryText}>Add New Service</Text>
-        </TouchableOpacity>
-      </View>
+      {/* ── Content ── */}
+      <View style={styles.content}>
 
-      {/* Recent Bookings Section */}
-      <View style={styles.sectionHeaderRow}>
-        <Text style={styles.sectionHeading}>Recent Bookings</Text>
-      </View>
+        {/* Business Location Card */}
+        <View style={styles.locationCard}>
+          <View style={styles.locationCardHeader}>
+            <View style={styles.locationCardIcon}>
+              <Building2 size={16} color={SC_ACCENT} strokeWidth={2.2} />
+            </View>
+            <Text style={styles.locationCardTitle}>Business Info & Contact</Text>
+          </View>
 
-      {bookings.length === 0 ? (
-        <Card style={styles.emptyCard}>
-          <CalendarCheck2 size={36} color={colors.textSecondary} />
-          <Text style={styles.emptyTitle}>No Bookings Yet</Text>
-          <Text style={styles.emptySubtitle}>
-            When customers book your pet-care services, they will appear here.
-          </Text>
-        </Card>
-      ) : (
-        bookings.slice(0, 4).map((booking) => {
-          const serviceName =
-            typeof booking.serviceId === 'object' && booking.serviceId !== null
+          {profile?.address && (
+            <TouchableOpacity
+              style={styles.locationRow}
+              onPress={() => openGoogleMapsDirections({ latitude: profile?.latitude, longitude: profile?.longitude, address: profile?.address ? `${profile.address}, ${profile.city}` : undefined, name: profile?.name })}
+            >
+              <View style={styles.locationRowIcon}>
+                <MapPin size={14} color={SC_ACCENT} strokeWidth={2} />
+              </View>
+              <Text style={styles.locationRowText} numberOfLines={1}>
+                {profile.address}, {profile.city}
+              </Text>
+              <Text style={styles.locationRowAction}>Directions →</Text>
+            </TouchableOpacity>
+          )}
+
+          {profile?.phone && (
+            <TouchableOpacity style={styles.locationRow} onPress={() => makePhoneCall(profile.phone)}>
+              <View style={styles.locationRowIcon}>
+                <Phone size={14} color="#059669" strokeWidth={2} />
+              </View>
+              <Text style={styles.locationRowText}>{profile.phone}</Text>
+              <Text style={styles.locationRowAction}>Call</Text>
+            </TouchableOpacity>
+          )}
+
+          {profile?.website && (
+            <TouchableOpacity style={styles.locationRow} onPress={() => openWebsite(profile.website)}>
+              <View style={styles.locationRowIcon}>
+                <Globe size={14} color="#2563EB" strokeWidth={2} />
+              </View>
+              <Text style={styles.locationRowText} numberOfLines={1}>{profile.website}</Text>
+              <Text style={styles.locationRowAction}>Visit</Text>
+            </TouchableOpacity>
+          )}
+
+          {!profile?.address && !profile?.phone && !profile?.website && (
+            <Text style={styles.locationEmptyText}>Complete your profile to add contact details</Text>
+          )}
+        </View>
+
+        {/* Stat Cards */}
+        <Text style={styles.sectionHeading}>Business Overview</Text>
+        <View style={styles.statsGrid}>
+          {[
+            { label: 'Listed Services', value: services.length, icon: Scissors, color: SC_ACCENT, bg: SC_LIGHT },
+            { label: 'Pending Requests', value: pendingBookings.length, icon: Clock, color: '#D97706', bg: '#FFFBEB' },
+            { label: 'Confirmed Visits', value: confirmedBookings.length, icon: CalendarCheck2, color: '#2563EB', bg: '#EFF6FF' },
+            { label: 'Completed', value: completedBookings.length, icon: CheckCircle2, color: '#059669', bg: '#ECFDF5' },
+          ].map(({ label, value, icon: Icon, color, bg }) => (
+            <View key={label} style={[styles.statCard, { borderTopColor: color }]}>
+              <View style={[styles.statIconBox, { backgroundColor: bg }]}>
+                <Icon size={18} color={color} strokeWidth={2.2} />
+              </View>
+              <Text style={[styles.statValue, { color }]}>{value}</Text>
+              <Text style={styles.statLabel}>{label}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Recent Bookings */}
+        <View style={styles.sectionRow}>
+          <Text style={styles.sectionHeading}>Recent Bookings</Text>
+          {bookings.length > 0 && (
+            <TouchableOpacity style={styles.seeAllBtn} onPress={() => navigation.navigate('CenterBookingsTab' as any)}>
+              <Text style={styles.seeAllText}>See All</Text>
+              <ChevronRight size={14} color={SC_ACCENT} />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {bookings.length === 0 ? (
+          <View style={styles.emptyBlock}>
+            <View style={styles.emptyIconBox}>
+              <CalendarCheck2 size={28} color={colors.textMuted} strokeWidth={2} />
+            </View>
+            <Text style={styles.emptyTitle}>No Bookings Yet</Text>
+            <Text style={styles.emptyDesc}>When customers book your services, they will appear here.</Text>
+          </View>
+        ) : (
+          bookings.slice(0, 4).map((booking) => {
+            const serviceName = typeof booking.serviceId === 'object' && booking.serviceId !== null
               ? (booking.serviceId as IService).name
               : 'Pet Service';
-          const petName =
-            typeof booking.petId === 'object' && booking.petId !== null
+            const petName = typeof booking.petId === 'object' && booking.petId !== null
               ? (booking.petId as { name?: string }).name
               : 'Pet';
+            const statusVariant: any = booking.status === 'confirmed' ? 'primary' : booking.status === 'completed' ? 'success' : booking.status === 'cancelled' ? 'danger' : 'warning';
+            const statusBorderColor = booking.status === 'confirmed' ? colors.primary : booking.status === 'completed' ? SC_ACCENT : booking.status === 'cancelled' ? colors.danger : colors.warning;
 
-          return (
-            <Card key={booking._id} style={styles.bookingRowCard}>
-              <View style={styles.bookingRowHeader}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.bookingServiceTitle}>{serviceName}</Text>
-                  <Text style={styles.bookingPetSubtitle}>
-                    🐾 Pet: {petName} • 🕒 {booking.time}
-                  </Text>
+            return (
+              <View key={booking._id} style={[styles.bookingCard, { borderLeftColor: statusBorderColor }]}>
+                <View style={styles.bookingCardTop}>
+                  <View style={styles.bookingCardLeft}>
+                    <View style={[styles.bookingServiceIcon, { backgroundColor: SC_LIGHT }]}>
+                      <Scissors size={14} color={SC_ACCENT} strokeWidth={2} />
+                    </View>
+                    <View style={styles.bookingCardText}>
+                      <Text style={styles.bookingServiceName}>{serviceName}</Text>
+                      <Text style={styles.bookingMeta}>🐾 {petName} · 🕒 {booking.time}</Text>
+                    </View>
+                  </View>
+                  <Badge label={booking.status} variant={statusVariant} dot />
                 </View>
-                <Badge
-                  label={booking.status.toUpperCase()}
-                  variant={
-                    booking.status === 'confirmed'
-                      ? 'primary'
-                      : booking.status === 'completed'
-                      ? 'success'
-                      : booking.status === 'cancelled'
-                      ? 'danger'
-                      : 'warning'
-                  }
-                />
               </View>
-            </Card>
-          );
-        })
-      )}
+            );
+          })
+        )}
+      </View>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  content: { paddingHorizontal: 16 },
-  header: { marginBottom: 16 },
-  headerTextCol: { gap: 4 },
-  welcomeText: { fontSize: 13, color: colors.textSecondary, fontWeight: '500' },
-  businessName: { fontSize: isSmallDevice ? 22 : 26, fontWeight: '800', color: colors.text },
-  bizCard: { padding: 16, marginBottom: 20 },
-  bizHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
-  bizTitle: { fontSize: 15, fontWeight: '700', color: colors.text },
-  bizDetails: { gap: 10 },
-  bizRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 },
-  bizRowText: { flex: 1, fontSize: 13, color: colors.textSecondary },
-  linkAction: { fontSize: 12, fontWeight: '700', color: colors.primary },
-  sectionHeading: { fontSize: 17, fontWeight: '700', color: colors.text, marginBottom: 12 },
-  sectionHeaderRow: { marginTop: 12 },
-  metricsGrid: {
+
+  // ── Header ──
+  tealHeader: {
+    backgroundColor: SC_HEADER,
+    paddingHorizontal: 18,
+    paddingBottom: 24,
+    overflow: 'hidden',
+  },
+  headerDecor1: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    top: -60,
+    right: -60,
+  },
+  headerDecor2: {
+    position: 'absolute',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    bottom: -30,
+    left: 20,
+  },
+  headerTopRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    marginBottom: 20,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
   },
-  metricCard: {
-    width: '48%',
-    padding: 14,
-    gap: 6,
-  },
-  metricVal: { fontSize: 24, fontWeight: '900', color: colors.text },
-  metricLabel: { fontSize: 12, color: colors.textSecondary, fontWeight: '600' },
-  actionsRow: { marginBottom: 20 },
-  actionBtnPrimary: {
-    backgroundColor: colors.primary,
+  centerBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 12,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 3,
+    gap: 5,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
   },
-  actionBtnPrimaryText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
-  emptyCard: { alignItems: 'center', paddingVertical: 36, gap: 8 },
-  emptyTitle: { fontSize: 16, fontWeight: '700', color: colors.text },
-  emptySubtitle: { fontSize: 13, color: colors.textSecondary, textAlign: 'center', paddingHorizontal: 20 },
-  bookingRowCard: { marginBottom: 10, padding: 14 },
-  bookingRowHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  bookingServiceTitle: { fontSize: 15, fontWeight: '700', color: colors.text },
-  bookingPetSubtitle: { fontSize: 13, color: colors.textSecondary, marginTop: 3 },
+  centerBadgeText: { fontSize: 9, fontWeight: '800', color: '#FFFFFF', letterSpacing: 1.5 },
+  addServiceBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  addServiceBtnText: { fontSize: 12, fontWeight: '700', color: SC_ACCENT },
+  welcomeLabel: { fontSize: 13, color: 'rgba(255,255,255,0.65)', fontWeight: '500', marginBottom: 3 },
+  businessName: {
+    fontSize: isSmallDevice ? 22 : 26,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: -0.6,
+    marginBottom: 18,
+  },
+  metricStrip: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    padding: 14,
+  },
+  metricStripItem: { flex: 1, alignItems: 'center' },
+  metricStripDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.2)', marginHorizontal: 4 },
+  metricStripVal: { fontSize: 20, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5 },
+  metricStripLabel: { fontSize: 10, fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginTop: 2 },
+
+  // ── Content ──
+  content: { paddingHorizontal: 16, paddingTop: 18 },
+
+  // ── Location Card ──
+  locationCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.07,
+    shadowRadius: 12,
+    elevation: 3,
+    gap: 10,
+  },
+  locationCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  locationCardIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: SC_LIGHT,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  locationCardTitle: { fontSize: 14, fontWeight: '800', color: colors.navy },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 4,
+  },
+  locationRowIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: colors.borderLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  locationRowText: { flex: 1, fontSize: 13, color: colors.textSecondary, fontWeight: '500' },
+  locationRowAction: { fontSize: 12, fontWeight: '700', color: SC_ACCENT },
+  locationEmptyText: { fontSize: 13, color: colors.textMuted, fontWeight: '500', textAlign: 'center', paddingVertical: 8 },
+
+  // ── Stats Grid ──
+  sectionHeading: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: colors.navy,
+    letterSpacing: -0.3,
+    marginBottom: 12,
+  },
+  sectionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  seeAllBtn: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  seeAllText: { fontSize: 13, fontWeight: '700', color: SC_ACCENT },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 22,
+  },
+  statCard: {
+    width: '48%',
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderTopWidth: 3,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.07,
+    shadowRadius: 10,
+    elevation: 3,
+    gap: 4,
+  },
+  statIconBox: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  statValue: { fontSize: 26, fontWeight: '900', letterSpacing: -0.8 },
+  statLabel: { fontSize: 12, color: colors.textSecondary, fontWeight: '600' },
+
+  // ── Booking Cards ──
+  bookingCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderLeftWidth: 4,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  bookingCardTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
+  },
+  bookingCardLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 10 },
+  bookingServiceIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bookingCardText: { flex: 1 },
+  bookingServiceName: { fontSize: 14, fontWeight: '800', color: colors.navy, letterSpacing: -0.1 },
+  bookingMeta: { fontSize: 12, color: colors.textSecondary, marginTop: 3, fontWeight: '500' },
+
+  // ── Empty ──
+  emptyBlock: {
+    alignItems: 'center',
+    paddingVertical: 32,
+    backgroundColor: colors.surface,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    gap: 8,
+    marginBottom: 12,
+  },
+  emptyIconBox: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    backgroundColor: colors.borderLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyTitle: { fontSize: 15, fontWeight: '800', color: colors.navy },
+  emptyDesc: { fontSize: 12, color: colors.textSecondary, textAlign: 'center', paddingHorizontal: 24, lineHeight: 18 },
 });
 
 export default ServiceCenterDashboardScreen;

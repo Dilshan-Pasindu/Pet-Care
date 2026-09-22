@@ -1,6 +1,6 @@
 /**
  * screens/veterinarian/VetDashboardScreen.tsx
- * Dedicated Clinical Dashboard for Veterinarians
+ * Premium Clinical Dashboard for Veterinarians — Clinical Blue Theme
  */
 
 import React, { useState, useCallback } from 'react';
@@ -35,9 +35,15 @@ import {
   Users,
   FilePlus,
   Phone,
+  ChevronRight,
+  Star,
+  Activity,
 } from 'lucide-react-native';
 
 type NavProp = StackNavigationProp<RootStackParamList>;
+
+const VET_ACCENT = '#1558CC';
+const VET_LIGHT = '#E0ECFF';
 
 export const VetDashboardScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -67,32 +73,18 @@ export const VetDashboardScreen: React.FC = () => {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      loadVetData();
-    }, [])
-  );
+  useFocusEffect(useCallback(() => { loadVetData(); }, []));
+  const onRefresh = () => { setRefreshing(true); loadVetData(); };
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    loadVetData();
-  };
-
-  // Metrics
   const todayStr = new Date().toISOString().split('T')[0];
   const todayAppts = appointments.filter((a) => {
     const apptDate = new Date(a.date).toISOString().split('T')[0];
     return apptDate === todayStr;
   });
-
   const pendingAppts = appointments.filter((a) => a.status === 'pending');
   const completedAppts = appointments.filter((a) => a.status === 'completed');
-
-  // Unique patients
   const uniquePatientIds = new Set(
-    appointments
-      .map((a) => (typeof a.petId === 'object' && a.petId ? a.petId._id : a.petId))
-      .filter(Boolean)
+    appointments.map((a) => (typeof a.petId === 'object' && a.petId ? a.petId._id : a.petId)).filter(Boolean)
   );
 
   const handleUpdateStatus = async (appointmentId: string, newStatus: 'confirmed' | 'completed' | 'cancelled') => {
@@ -105,326 +97,490 @@ export const VetDashboardScreen: React.FC = () => {
     }
   };
 
+  const doctorName = user?.name?.startsWith('Dr.') ? user.name : `Dr. ${user?.name || 'Veterinarian'}`;
+
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={[
-        styles.content,
-        {
-          paddingTop: Math.max(insets.top + 8, 16),
-          paddingBottom: Math.max(insets.bottom + 24, 36),
-        },
-      ]}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} />
-      }
+      contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 24, 36) }}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[VET_ACCENT]} tintColor={VET_ACCENT} />}
+      showsVerticalScrollIndicator={false}
     >
-      {/* Vet Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={styles.badgeRow}>
-            <View style={styles.doctorBadge}>
-              <Stethoscope size={14} color="#2563EB" />
-              <Text style={styles.doctorBadgeText}>Verified Practitioner</Text>
-            </View>
+      {/* ── Clinical Header ── */}
+      <View style={[styles.clinicalHeader, { paddingTop: Math.max(insets.top + 10, 24) }]}>
+        <View style={styles.headerDecor1} />
+        <View style={styles.headerDecor2} />
+
+        {/* Verified Badge */}
+        <View style={styles.verifiedBadge}>
+          <Star size={12} color="#FFFFFF" strokeWidth={2.5} fill="#FFFFFF" />
+          <Text style={styles.verifiedText}>VERIFIED PRACTITIONER</Text>
+        </View>
+
+        <Text style={styles.doctorName}>{doctorName}</Text>
+        <Text style={styles.clinicInfo}>{specialization} · {clinicName}</Text>
+
+        {/* Metric Strip */}
+        <View style={styles.metricStrip}>
+          <View style={styles.metricStripItem}>
+            <Text style={styles.metricStripVal}>{todayAppts.length}</Text>
+            <Text style={styles.metricStripLabel}>Today</Text>
           </View>
-          <Text style={styles.doctorName}>
-            {user?.name?.startsWith('Dr.') ? user.name : `Dr. ${user?.name || 'Veterinarian'}`}
-          </Text>
-          <Text style={styles.clinicSub}>{specialization} • {clinicName}</Text>
+          <View style={styles.metricStripDivider} />
+          <View style={styles.metricStripItem}>
+            <Text style={styles.metricStripVal}>{pendingAppts.length}</Text>
+            <Text style={styles.metricStripLabel}>Pending</Text>
+          </View>
+          <View style={styles.metricStripDivider} />
+          <View style={styles.metricStripItem}>
+            <Text style={styles.metricStripVal}>{completedAppts.length}</Text>
+            <Text style={styles.metricStripLabel}>Done</Text>
+          </View>
+          <View style={styles.metricStripDivider} />
+          <View style={styles.metricStripItem}>
+            <Text style={styles.metricStripVal}>{uniquePatientIds.size}</Text>
+            <Text style={styles.metricStripLabel}>Patients</Text>
+          </View>
         </View>
       </View>
 
-      {/* Clinical Metrics Grid */}
-      <View style={styles.metricsGrid}>
-        <View style={[styles.metricCard, { borderLeftColor: '#2563EB' }]}>
-          <View style={[styles.metricIconBox, { backgroundColor: '#EFF6FF' }]}>
-            <Calendar size={18} color="#2563EB" />
-          </View>
-          <Text style={styles.metricNumber}>{todayAppts.length}</Text>
-          <Text style={styles.metricLabel}>Today's Visits</Text>
-        </View>
+      {/* ── Content ── */}
+      <View style={styles.content}>
 
-        <View style={[styles.metricCard, { borderLeftColor: '#D97706' }]}>
-          <View style={[styles.metricIconBox, { backgroundColor: '#FFFBEB' }]}>
-            <AlertCircle size={18} color="#D97706" />
-          </View>
-          <Text style={styles.metricNumber}>{pendingAppts.length}</Text>
-          <Text style={styles.metricLabel}>Pending Requests</Text>
-        </View>
-
-        <View style={[styles.metricCard, { borderLeftColor: '#059669' }]}>
-          <View style={[styles.metricIconBox, { backgroundColor: '#ECFDF5' }]}>
-            <CheckCircle2 size={18} color="#059669" />
-          </View>
-          <Text style={styles.metricNumber}>{completedAppts.length}</Text>
-          <Text style={styles.metricLabel}>Completed</Text>
-        </View>
-
-        <View style={[styles.metricCard, { borderLeftColor: '#7C3AED' }]}>
-          <View style={[styles.metricIconBox, { backgroundColor: '#F5F3FF' }]}>
-            <Users size={18} color="#7C3AED" />
-          </View>
-          <Text style={styles.metricNumber}>{uniquePatientIds.size}</Text>
-          <Text style={styles.metricLabel}>Total Patients</Text>
-        </View>
-      </View>
-
-      {/* Quick Clinical Actions */}
-      <View style={styles.quickActionsBar}>
-        <TouchableOpacity
-          style={styles.actionBtnPrimary}
-          onPress={() => navigation.navigate('AddMedicalRecord', {})}
-        >
-          <FilePlus size={18} color="#FFFFFF" />
-          <Text style={styles.actionBtnPrimaryText}>Add Clinical Record</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Today's Schedule Agenda */}
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>Today's Consultations ({todayAppts.length})</Text>
-      </View>
-
-      {todayAppts.length === 0 ? (
-        <Card style={styles.emptyCard}>
-          <Text style={styles.emptyTitle}>No Consultations Scheduled Today</Text>
-          <Text style={styles.emptySub}>Upcoming appointments will appear here automatically.</Text>
-        </Card>
-      ) : (
-        todayAppts.map((appt) => {
-          const pet = typeof appt.petId === 'object' && appt.petId ? appt.petId : null;
-          const owner = typeof appt.ownerId === 'object' && appt.ownerId ? appt.ownerId : null;
-
-          return (
-            <Card key={appt._id} style={styles.apptCard}>
-              <View style={styles.apptTopRow}>
-                <View style={styles.petInfoRow}>
-                  <PetAvatar
-                    imageUrl={pet?.imageUrl}
-                    image={pet?.image}
-                    name={pet?.name}
-                    species={pet?.species}
-                    size={48}
-                    borderRadius={12}
-                  />
-                  <View style={{ marginLeft: 12 }}>
-                    <Text style={styles.petNameText}>{pet?.name || 'Pet Patient'}</Text>
-                    <Text style={styles.speciesText}>{pet?.species || 'Species not specified'}</Text>
-                  </View>
-                </View>
-                <Badge
-                  label={appt.status.toUpperCase()}
-                  variant={
-                    appt.status === 'confirmed'
-                      ? 'success'
-                      : appt.status === 'pending'
-                      ? 'warning'
-                      : appt.status === 'completed'
-                      ? 'primary'
-                      : 'danger'
-                  }
-                />
+        {/* Metric Cards */}
+        <View style={styles.metricsGrid}>
+          {[
+            { label: "Today's Visits", value: todayAppts.length, icon: Calendar, color: VET_ACCENT, bg: VET_LIGHT },
+            { label: 'Pending Reviews', value: pendingAppts.length, icon: AlertCircle, color: '#D97706', bg: '#FFFBEB' },
+            { label: 'Completed', value: completedAppts.length, icon: CheckCircle2, color: '#059669', bg: '#ECFDF5' },
+            { label: 'Total Patients', value: uniquePatientIds.size, icon: Users, color: '#7C3AED', bg: '#F5F3FF' },
+          ].map(({ label, value, icon: Icon, color, bg }) => (
+            <View key={label} style={[styles.metricCard, { borderTopColor: color }]}>
+              <View style={[styles.metricIconBox, { backgroundColor: bg }]}>
+                <Icon size={18} color={color} strokeWidth={2.2} />
               </View>
+              <Text style={[styles.metricValue, { color }]}>{value}</Text>
+              <Text style={styles.metricLabel}>{label}</Text>
+            </View>
+          ))}
+        </View>
 
-              <View style={styles.apptMetaBox}>
-                <View style={styles.metaRow}>
-                  <Clock size={13} color={colors.textSecondary} />
-                  <Text style={styles.metaText}>{appt.time}</Text>
+        {/* Primary Action */}
+        <TouchableOpacity
+          style={styles.primaryActionBtn}
+          onPress={() => navigation.navigate('AddMedicalRecord', {})}
+          activeOpacity={0.85}
+        >
+          <View style={styles.primaryActionIcon}>
+            <FilePlus size={20} color="#FFFFFF" strokeWidth={2.5} />
+          </View>
+          <Text style={styles.primaryActionText}>Add Clinical Record / Prescription</Text>
+          <ChevronRight size={18} color="rgba(255,255,255,0.7)" />
+        </TouchableOpacity>
+
+        {/* Today's Schedule */}
+        <View style={styles.sectionRow}>
+          <Text style={styles.sectionTitle}>Today's Consultations</Text>
+          <View style={styles.countChip}>
+            <Text style={styles.countChipText}>{todayAppts.length}</Text>
+          </View>
+        </View>
+
+        {todayAppts.length === 0 ? (
+          <View style={styles.emptyBlock}>
+            <View style={styles.emptyIconBox}>
+              <Calendar size={28} color={colors.textMuted} strokeWidth={2} />
+            </View>
+            <Text style={styles.emptyTitle}>No Consultations Today</Text>
+            <Text style={styles.emptyDesc}>Upcoming appointments will appear here automatically.</Text>
+          </View>
+        ) : (
+          todayAppts.map((appt) => {
+            const pet = typeof appt.petId === 'object' && appt.petId ? appt.petId : null;
+            const owner = typeof appt.ownerId === 'object' && appt.ownerId ? appt.ownerId : null;
+            const statusColor = appt.status === 'confirmed' ? '#059669' : appt.status === 'pending' ? '#D97706' : appt.status === 'completed' ? VET_ACCENT : '#DC2626';
+
+            return (
+              <View key={appt._id} style={[styles.apptCard, { borderLeftColor: statusColor }]}>
+                <View style={styles.apptTopRow}>
+                  <View style={styles.petInfoGroup}>
+                    <PetAvatar imageUrl={pet?.imageUrl} image={pet?.image} name={pet?.name} species={pet?.species} size={48} borderRadius={14} />
+                    <View style={styles.petInfoText}>
+                      <Text style={styles.petName}>{pet?.name || 'Pet Patient'}</Text>
+                      <Text style={styles.petSpecies}>{pet?.species || 'Species unknown'}</Text>
+                    </View>
+                  </View>
+                  <Badge
+                    label={appt.status}
+                    variant={appt.status === 'confirmed' ? 'success' : appt.status === 'pending' ? 'warning' : appt.status === 'completed' ? 'primary' : 'danger'}
+                    dot
+                  />
                 </View>
-                <Text style={styles.reasonText} numberOfLines={2}>
+
+                <View style={styles.apptMeta}>
+                  <View style={styles.apptMetaItem}>
+                    <Clock size={13} color={colors.textSecondary} strokeWidth={2} />
+                    <Text style={styles.apptMetaText}>{appt.time}</Text>
+                  </View>
+                  {owner && (
+                    <View style={styles.apptMetaItem}>
+                      <Users size={13} color={colors.textSecondary} strokeWidth={2} />
+                      <Text style={styles.apptMetaText}>{owner.name}</Text>
+                    </View>
+                  )}
+                </View>
+
+                <Text style={styles.apptReason} numberOfLines={2}>
                   <Text style={{ fontWeight: '700' }}>Reason: </Text>{appt.reason}
                 </Text>
-                {owner && (
-                  <View style={styles.ownerContactRow}>
-                    <Text style={styles.ownerNameText}>Owner: {owner.name}</Text>
-                    {owner.phone && (
-                      <View style={styles.phoneTag}>
-                        <Phone size={11} color="#059669" />
-                        <Text style={styles.phoneText}>{owner.phone}</Text>
-                      </View>
-                    )}
+
+                {owner?.phone && (
+                  <View style={styles.phoneTag}>
+                    <Phone size={11} color={colors.secondary} strokeWidth={2} />
+                    <Text style={styles.phoneTagText}>{owner.phone}</Text>
                   </View>
                 )}
-              </View>
 
-              {/* Action Buttons */}
-              <View style={styles.cardActionsRow}>
-                {appt.status === 'pending' && (
-                  <TouchableOpacity
-                    style={[styles.smallBtn, { backgroundColor: '#ECFDF5', borderColor: '#A7F3D0' }]}
-                    onPress={() => handleUpdateStatus(appt._id, 'confirmed')}
-                  >
-                    <Text style={[styles.smallBtnText, { color: '#059669' }]}>Accept Visit</Text>
-                  </TouchableOpacity>
-                )}
-
-                {appt.status === 'confirmed' && (
-                  <TouchableOpacity
-                    style={[styles.smallBtn, { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }]}
-                    onPress={() => handleUpdateStatus(appt._id, 'completed')}
-                  >
-                    <Text style={[styles.smallBtnText, { color: '#2563EB' }]}>Mark Completed</Text>
-                  </TouchableOpacity>
-                )}
-
-                {pet && (
-                  <TouchableOpacity
-                    style={[styles.smallBtn, { backgroundColor: '#F3F4F6', borderColor: '#E5E7EB' }]}
-                    onPress={() => navigation.navigate('AddMedicalRecord', { petId: pet._id })}
-                  >
-                    <Text style={[styles.smallBtnText, { color: colors.text }]}>Add Rx / Notes</Text>
-                  </TouchableOpacity>
-                )}
-
-                <TouchableOpacity
-                  style={[styles.smallBtn, { backgroundColor: '#FFFFFF', borderColor: colors.border }]}
-                  onPress={() => navigation.navigate('AppointmentDetail', { appointmentId: appt._id })}
-                >
-                  <Text style={[styles.smallBtnText, { color: colors.textSecondary }]}>Details</Text>
-                </TouchableOpacity>
-              </View>
-            </Card>
-          );
-        })
-      )}
-
-      {/* Pending Action Requests */}
-      {pendingAppts.length > 0 && (
-        <>
-          <View style={[styles.sectionHeader, { marginTop: 20 }]}>
-            <Text style={styles.sectionTitle}>Requires Confirmation ({pendingAppts.length})</Text>
-          </View>
-          {pendingAppts.slice(0, 3).map((appt) => {
-            const pet = typeof appt.petId === 'object' && appt.petId ? appt.petId : null;
-            return (
-              <Card key={appt._id} style={styles.pendingCard}>
-                <View style={styles.pendingHeader}>
-                  <Text style={styles.pendingDate}>{formatDate(appt.date)} at {appt.time}</Text>
-                  <Badge label="Needs Review" variant="warning" />
-                </View>
-                <Text style={styles.pendingPetName}>Patient: {pet?.name || 'Pet'}</Text>
-                <Text style={styles.pendingReason}>"{appt.reason}"</Text>
-                <View style={styles.pendingActions}>
-                  <TouchableOpacity
-                    style={styles.confirmBtn}
-                    onPress={() => handleUpdateStatus(appt._id, 'confirmed')}
-                  >
-                    <Text style={styles.confirmBtnText}>Confirm Appointment</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.declineBtn}
-                    onPress={() => handleUpdateStatus(appt._id, 'cancelled')}
-                  >
-                    <Text style={styles.declineBtnText}>Decline</Text>
+                <View style={styles.apptActionRow}>
+                  {appt.status === 'pending' && (
+                    <TouchableOpacity style={[styles.apptBtn, styles.apptBtnAccept]} onPress={() => handleUpdateStatus(appt._id, 'confirmed')}>
+                      <Text style={styles.apptBtnAcceptText}>Accept Visit</Text>
+                    </TouchableOpacity>
+                  )}
+                  {appt.status === 'confirmed' && (
+                    <TouchableOpacity style={[styles.apptBtn, styles.apptBtnComplete]} onPress={() => handleUpdateStatus(appt._id, 'completed')}>
+                      <Text style={styles.apptBtnCompleteText}>Mark Completed</Text>
+                    </TouchableOpacity>
+                  )}
+                  {pet && (
+                    <TouchableOpacity style={[styles.apptBtn, styles.apptBtnNeutral]} onPress={() => navigation.navigate('AddMedicalRecord', { petId: pet._id })}>
+                      <Text style={styles.apptBtnNeutralText}>Add Rx / Notes</Text>
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity style={[styles.apptBtn, styles.apptBtnOutline]} onPress={() => navigation.navigate('AppointmentDetail', { appointmentId: appt._id })}>
+                    <Text style={styles.apptBtnOutlineText}>Details</Text>
                   </TouchableOpacity>
                 </View>
-              </Card>
+              </View>
             );
-          })}
-        </>
-      )}
+          })
+        )}
+
+        {/* Pending Actions */}
+        {pendingAppts.length > 0 && (
+          <>
+            <View style={[styles.sectionRow, { marginTop: 20 }]}>
+              <Text style={styles.sectionTitle}>Requires Confirmation</Text>
+              <View style={[styles.countChip, { backgroundColor: '#FEF3C7' }]}>
+                <Text style={[styles.countChipText, { color: '#92400E' }]}>{pendingAppts.length}</Text>
+              </View>
+            </View>
+            {pendingAppts.slice(0, 3).map((appt) => {
+              const pet = typeof appt.petId === 'object' && appt.petId ? appt.petId : null;
+              return (
+                <View key={appt._id} style={styles.pendingCard}>
+                  <View style={styles.pendingCardHeader}>
+                    <View>
+                      <Text style={styles.pendingDate}>{formatDate(appt.date)} at {appt.time}</Text>
+                      <Text style={styles.pendingPet}>Patient: {pet?.name || 'Unknown Pet'}</Text>
+                    </View>
+                    <Badge label="Needs Review" variant="warning" dot />
+                  </View>
+                  <Text style={styles.pendingReason}>"{appt.reason}"</Text>
+                  <View style={styles.pendingActions}>
+                    <TouchableOpacity style={styles.confirmBtn} onPress={() => handleUpdateStatus(appt._id, 'confirmed')}>
+                      <Text style={styles.confirmBtnText}>Confirm Appointment</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.declineBtn} onPress={() => handleUpdateStatus(appt._id, 'cancelled')}>
+                      <Text style={styles.declineBtnText}>Decline</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })}
+          </>
+        )}
+      </View>
     </ScrollView>
   );
 };
 
+const VET_ACCENT_COLOR = '#1558CC';
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  content: { paddingHorizontal: 16 },
-  header: { marginBottom: 18 },
-  headerLeft: {},
-  badgeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-  doctorBadge: {
+
+  // ── Clinical Header ──
+  clinicalHeader: {
+    backgroundColor: VET_ACCENT_COLOR,
+    paddingHorizontal: 18,
+    paddingBottom: 24,
+    overflow: 'hidden',
+  },
+  headerDecor1: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    top: -60,
+    right: -60,
+  },
+  headerDecor2: {
+    position: 'absolute',
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    bottom: -20,
+    left: 40,
+  },
+  verifiedBadge: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'flex-start',
     gap: 5,
-    backgroundColor: '#EFF6FF',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    borderColor: '#DBEAFE',
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
     borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    marginBottom: 14,
   },
-  doctorBadgeText: { fontSize: 11, fontWeight: '700', color: '#2563EB', textTransform: 'uppercase' },
-  doctorName: { fontSize: 22, fontWeight: '800', color: colors.text },
-  clinicSub: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
-  metricsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
+  verifiedText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 1.5,
+  },
+  doctorName: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    letterSpacing: -0.6,
+    marginBottom: 3,
+  },
+  clinicInfo: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.7)',
+    fontWeight: '500',
+    marginBottom: 18,
+  },
+  metricStrip: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    padding: 14,
+  },
+  metricStripItem: { flex: 1, alignItems: 'center' },
+  metricStripDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.2)', marginHorizontal: 4 },
+  metricStripVal: { fontSize: 20, fontWeight: '900', color: '#FFFFFF', letterSpacing: -0.5 },
+  metricStripLabel: { fontSize: 10, fontWeight: '600', color: 'rgba(255,255,255,0.6)', marginTop: 2 },
+
+  // ── Content ──
+  content: { paddingHorizontal: 16, paddingTop: 20 },
+
+  metricsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 16,
+  },
   metricCard: {
     width: '48%',
     backgroundColor: colors.surface,
     padding: 14,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    borderLeftWidth: 4,
+    borderTopWidth: 3,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.07,
+    shadowRadius: 10,
+    elevation: 3,
+    gap: 4,
   },
   metricIconBox: {
     width: 34,
     height: 34,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 4,
   },
-  metricNumber: { fontSize: 22, fontWeight: '800', color: colors.text },
-  metricLabel: { fontSize: 12, color: colors.textSecondary, marginTop: 2, fontWeight: '500' },
-  quickActionsBar: { marginBottom: 18 },
-  actionBtnPrimary: {
-    backgroundColor: '#2563EB',
+  metricValue: { fontSize: 26, fontWeight: '900', letterSpacing: -0.8 },
+  metricLabel: { fontSize: 12, color: colors.textSecondary, fontWeight: '600' },
+
+  // ── Primary Action ──
+  primaryActionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: VET_ACCENT_COLOR,
+    paddingHorizontal: 16,
+    paddingVertical: 15,
+    borderRadius: 16,
+    gap: 12,
+    marginBottom: 22,
+    shadowColor: VET_ACCENT_COLOR,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  primaryActionIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 11,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
     justifyContent: 'center',
+  },
+  primaryActionText: { flex: 1, fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
+
+  // ── Section Headers ──
+  sectionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+  },
+  sectionTitle: { fontSize: 17, fontWeight: '800', color: colors.navy, letterSpacing: -0.3 },
+  countChip: {
+    backgroundColor: VET_LIGHT,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: `${VET_ACCENT_COLOR}30`,
+  },
+  countChipText: { fontSize: 12, fontWeight: '800', color: VET_ACCENT_COLOR },
+
+  // ── Appointment Cards ──
+  apptCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 18,
+    padding: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderLeftWidth: 4,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+    gap: 10,
+  },
+  apptTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  petInfoGroup: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  petInfoText: {},
+  petName: { fontSize: 15, fontWeight: '800', color: colors.navy, letterSpacing: -0.2 },
+  petSpecies: { fontSize: 12, color: colors.textSecondary, fontWeight: '500', marginTop: 2 },
+  apptMeta: { flexDirection: 'row', gap: 14 },
+  apptMetaItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  apptMetaText: { fontSize: 12, color: colors.textSecondary, fontWeight: '600' },
+  apptReason: {
+    fontSize: 13,
+    color: colors.text,
+    backgroundColor: colors.backgroundDeep,
+    borderRadius: 10,
+    padding: 10,
+    lineHeight: 18,
+    fontWeight: '500',
+  },
+  phoneTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    alignSelf: 'flex-start',
+    backgroundColor: colors.secondaryLight,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  phoneTagText: { fontSize: 12, fontWeight: '700', color: colors.secondaryDark },
+  apptActionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  apptBtn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10 },
+  apptBtnAccept: { backgroundColor: '#ECFDF5', borderWidth: 1, borderColor: '#A7F3D0' },
+  apptBtnAcceptText: { fontSize: 12, fontWeight: '700', color: '#059669' },
+  apptBtnComplete: { backgroundColor: VET_LIGHT, borderWidth: 1, borderColor: `${VET_ACCENT_COLOR}50` },
+  apptBtnCompleteText: { fontSize: 12, fontWeight: '700', color: VET_ACCENT_COLOR },
+  apptBtnNeutral: { backgroundColor: colors.borderLight, borderWidth: 1, borderColor: colors.border },
+  apptBtnNeutralText: { fontSize: 12, fontWeight: '700', color: colors.text },
+  apptBtnOutline: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  apptBtnOutlineText: { fontSize: 12, fontWeight: '600', color: colors.textSecondary },
+
+  // ── Empty State ──
+  emptyBlock: {
+    alignItems: 'center',
+    paddingVertical: 28,
+    backgroundColor: colors.surface,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    marginBottom: 16,
     gap: 8,
-    paddingVertical: 14,
-    borderRadius: 14,
-    shadowColor: '#2563EB',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
+  },
+  emptyIconBox: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    backgroundColor: colors.borderLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyTitle: { fontSize: 15, fontWeight: '800', color: colors.navy },
+  emptyDesc: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    paddingHorizontal: 24,
+    lineHeight: 18,
+  },
+
+  // ── Pending Cards ──
+  pendingCard: {
+    backgroundColor: '#FFFBEB',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    borderLeftWidth: 4,
+    borderLeftColor: '#F59E0B',
+    gap: 8,
+  },
+  pendingCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  pendingDate: { fontSize: 13, fontWeight: '800', color: '#92400E' },
+  pendingPet: { fontSize: 14, fontWeight: '700', color: colors.text, marginTop: 2 },
+  pendingReason: { fontSize: 12, color: colors.textSecondary, fontStyle: 'italic', lineHeight: 18 },
+  pendingActions: { flexDirection: 'row', gap: 10 },
+  confirmBtn: {
+    flex: 1,
+    backgroundColor: '#059669',
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    shadowColor: '#059669',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
     elevation: 3,
   },
-  actionBtnPrimaryText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
-  sectionHeader: { marginBottom: 12 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: colors.text },
-  emptyCard: { padding: 24, alignItems: 'center' },
-  emptyTitle: { fontSize: 15, fontWeight: '700', color: colors.text },
-  emptySub: { fontSize: 12, color: colors.textSecondary, marginTop: 4, textAlign: 'center' },
-  apptCard: { padding: 14, marginBottom: 12 },
-  apptTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  petInfoRow: { flexDirection: 'row', alignItems: 'center' },
-  petNameText: { fontSize: 15, fontWeight: '700', color: colors.text },
-  speciesText: { fontSize: 12, color: colors.textSecondary, marginTop: 1 },
-  apptMetaBox: {
-    backgroundColor: colors.background,
-    padding: 10,
-    borderRadius: 10,
-    marginTop: 10,
-    gap: 4,
-  },
-  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  metaText: { fontSize: 12, fontWeight: '600', color: colors.text },
-  reasonText: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
-  ownerContactRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
-  ownerNameText: { fontSize: 12, fontWeight: '600', color: colors.text },
-  phoneTag: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#ECFDF5', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
-  phoneText: { fontSize: 11, fontWeight: '600', color: '#059669' },
-  cardActionsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
-  smallBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  smallBtnText: { fontSize: 12, fontWeight: '700' },
-  pendingCard: { padding: 14, marginBottom: 10, backgroundColor: '#FFFBEB', borderColor: '#FDE68A' },
-  pendingHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  pendingDate: { fontSize: 13, fontWeight: '700', color: '#92400E' },
-  pendingPetName: { fontSize: 14, fontWeight: '700', color: colors.text, marginTop: 6 },
-  pendingReason: { fontSize: 12, color: colors.textSecondary, fontStyle: 'italic', marginTop: 2 },
-  pendingActions: { flexDirection: 'row', gap: 10, marginTop: 12 },
-  confirmBtn: { flex: 1, backgroundColor: '#059669', paddingVertical: 9, borderRadius: 8, alignItems: 'center' },
   confirmBtnText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700' },
-  declineBtn: { flex: 1, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#DC2626', paddingVertical: 9, borderRadius: 8, alignItems: 'center' },
+  declineBtn: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderWidth: 1.5,
+    borderColor: '#DC2626',
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
   declineBtnText: { color: '#DC2626', fontSize: 13, fontWeight: '700' },
 });
 

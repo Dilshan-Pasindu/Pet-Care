@@ -74,14 +74,17 @@ export const RootNavigator: React.FC = () => {
         screenOptions={{
           headerStyle: {
             backgroundColor: colors.surface,
-            elevation: 0,
-            shadowOpacity: 0,
+            elevation: 2,
+            shadowColor: colors.shadow,
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.05,
+            shadowRadius: 8,
             borderBottomWidth: 1,
             borderBottomColor: colors.border,
           },
           headerTintColor: colors.text,
           headerTitleStyle: {
-            fontWeight: '700',
+            fontWeight: '800',
             fontSize: 17,
           },
         }}
