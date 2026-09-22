@@ -14,7 +14,13 @@ interface CreateVetInput {
   experience?: number;
   clinicName?: string;
   phone?: string;
+  email?: string;
+  address?: string;
+  city?: string;
   location?: string;
+  latitude?: number;
+  longitude?: number;
+  typesOfCare?: string;
   consultationFee?: number;
   description?: string;
 }
@@ -75,8 +81,26 @@ export const updateVeterinarian = async (
 };
 
 export const getMyVeterinarianProfile = async (userId: string): Promise<IVeterinarian> => {
-  const vet = await Veterinarian.findOne({ userId }).populate('userId', 'name email phone');
-  if (!vet) throw Object.assign(new Error('Veterinarian profile not found.'), { statusCode: 404 });
+  let vet = await Veterinarian.findOne({ userId }).populate('userId', 'name email phone');
+  if (!vet) {
+    const User = (await import('../../common/authentication/user.model')).default;
+    const user = await User.findById(userId);
+    if (!user) throw Object.assign(new Error('User not found.'), { statusCode: 404 });
+
+    vet = await Veterinarian.create({
+      userId: user._id,
+      name: user.name.startsWith('Dr.') ? user.name : `Dr. ${user.name}`,
+      specialization: 'General Veterinary Medicine',
+      qualification: 'DVM / BVSc',
+      phone: user.phone || '',
+      email: user.email,
+      address: 'Clinic Address',
+      city: 'City',
+      clinicName: 'PetCare Veterinary Clinic',
+      consultationFee: 50,
+    });
+    await vet.populate('userId', 'name email phone');
+  }
   return vet;
 };
 

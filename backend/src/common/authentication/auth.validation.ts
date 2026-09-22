@@ -55,8 +55,13 @@ export const validateRegister: ValidationMiddleware[] = [
 
   body('role')
     .optional()
-    .isIn(['owner', 'veterinarian', 'admin'])
-    .withMessage('Role must be owner, veterinarian, or admin'),
+    .custom((val) => {
+      const allowed = ['owner', 'customer', 'veterinarian', 'service_center', 'admin'];
+      if (!allowed.includes(String(val).toLowerCase())) {
+        throw new Error('Role must be Customer, Veterinarian, Pet-Care Service Center, or Admin');
+      }
+      return true;
+    }),
 
   handleValidationErrors,
 ];

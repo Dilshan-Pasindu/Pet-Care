@@ -3,10 +3,29 @@
  * Shared Domain Interfaces for Frontend
  */
 
-export type UserRole = 'owner' | 'veterinarian' | 'admin';
+export type UserRole =
+  | 'owner'
+  | 'customer'
+  | 'veterinarian'
+  | 'service_center'
+  | 'admin'
+  | 'CUSTOMER'
+  | 'VETERINARIAN'
+  | 'SERVICE_CENTER'
+  | 'ADMIN';
 export type PetGender = 'male' | 'female';
 export type AppointmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
-export type ServiceCategory = 'Grooming' | 'Bathing' | 'Nail Trimming' | 'Training' | 'Boarding' | 'Walking' | 'Other';
+export type ServiceCategory =
+  | 'Grooming'
+  | 'Bathing'
+  | 'Nail Trimming'
+  | 'Nail Polishing'
+  | 'Training'
+  | 'Boarding'
+  | 'Walking'
+  | 'Pet Daycare'
+  | 'Pet Spa'
+  | 'Other';
 export type BookingStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
 
 export interface IUser {
@@ -53,11 +72,36 @@ export interface IVeterinarian {
   experience: number;
   clinicName: string;
   phone: string;
+  email?: string;
+  address?: string;
+  city?: string;
   location: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  typesOfCare?: string;
   consultationFee: number;
   availability: IAvailabilitySlot[];
   profileImage?: string | null;
   description?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface IServiceCenter {
+  _id: string;
+  userId?: string | IUser;
+  name: string;
+  description?: string;
+  phone: string;
+  email?: string;
+  website?: string;
+  address: string;
+  city: string;
+  location?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  openingHours?: string;
+  profileImage?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -107,6 +151,7 @@ export interface IMedicalRecord {
 
 export interface IService {
   _id: string;
+  serviceCenterId?: IServiceCenter | string;
   name: string;
   description?: string;
   category: ServiceCategory;

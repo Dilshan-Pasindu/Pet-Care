@@ -17,7 +17,16 @@ import { Document, Types } from 'mongoose';
 
 // ─── Enums / Literal Types ────────────────────────────────────
 
-export type UserRole = 'owner' | 'veterinarian' | 'admin';
+export type UserRole =
+  | 'owner'
+  | 'customer'
+  | 'veterinarian'
+  | 'service_center'
+  | 'admin'
+  | 'CUSTOMER'
+  | 'VETERINARIAN'
+  | 'SERVICE_CENTER'
+  | 'ADMIN';
 
 export type Gender = 'male' | 'female' | 'unknown';
 
@@ -29,9 +38,12 @@ export type ServiceCategory =
   | 'Grooming'
   | 'Bathing'
   | 'Nail Trimming'
+  | 'Nail Polishing'
   | 'Training'
   | 'Boarding'
   | 'Walking'
+  | 'Pet Daycare'
+  | 'Pet Spa'
   | 'Other';
 
 export type DayOfWeek =
@@ -105,7 +117,13 @@ export interface IVeterinarian extends Document {
   experience: number;
   clinicName: string | null;
   phone: string | null;
+  email: string | null;
+  address: string | null;
+  city: string | null;
   location: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  typesOfCare: string | null;
   consultationFee: number;
   availability: IAvailabilitySlot[];
   profileImage: string | null;
@@ -161,10 +179,30 @@ export interface IMedicalRecord extends Document {
   updatedAt: Date;
 }
 
-// ─── Function 5 — Services ────────────────────────────────────
+// ─── Function 5 — Pet-Care Service Centers & Services ──────────
+
+export interface IServiceCenter extends Document {
+  _id: Types.ObjectId;
+  userId: Types.ObjectId;
+  name: string;
+  description: string | null;
+  phone: string;
+  email: string | null;
+  website: string | null;
+  address: string;
+  city: string;
+  location: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  openingHours: string | null;
+  profileImage: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export interface IService extends Document {
   _id: Types.ObjectId;
+  serviceCenterId?: Types.ObjectId | IServiceCenter;
   name: string;
   description: string | null;
   category: ServiceCategory;

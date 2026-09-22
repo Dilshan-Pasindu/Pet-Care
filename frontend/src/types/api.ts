@@ -3,7 +3,7 @@
  * API Request & Response Types
  */
 
-import { IUser } from './models';
+import { IUser, UserRole } from './models';
 
 export interface ApiResponse<T = unknown> {
   success: boolean;
@@ -28,5 +28,8 @@ export interface RegisterPayload {
   email: string;
   password: string;
   phone?: string;
-  role?: 'owner' | 'veterinarian';
+  role?: UserRole;
+  address?: string;
+  city?: string;
+  website?: string;
 }

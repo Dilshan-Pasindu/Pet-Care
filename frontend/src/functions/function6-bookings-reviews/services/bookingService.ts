@@ -33,11 +33,15 @@ export const bookingService = {
     return res.data.data!;
   },
 
-  async cancelBooking(id: string): Promise<IServiceBooking> {
+  async updateBookingStatus(id: string, status: BookingStatus): Promise<IServiceBooking> {
     const res = await api.patch<ApiResponse<IServiceBooking>>(`/service-bookings/${id}`, {
-      status: 'cancelled',
+      status,
     });
     return res.data.data!;
+  },
+
+  async cancelBooking(id: string): Promise<IServiceBooking> {
+    return this.updateBookingStatus(id, 'cancelled');
   },
 
   async deleteBooking(id: string): Promise<void> {
