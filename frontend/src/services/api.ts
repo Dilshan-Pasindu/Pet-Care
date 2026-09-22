@@ -31,10 +31,16 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<{ message?: string; errors?: Array<{ field: string; message: string }> }>) => {
-    const message =
-      error.response?.data?.message ||
+    const errorData = error.response?.data;
+    let message =
+      errorData?.message ||
       error.message ||
       'An unexpected error occurred. Please try again.';
+
+    if (errorData?.errors && Array.isArray(errorData.errors) && errorData.errors.length > 0) {
+      const fieldErrors = errorData.errors.map((e) => e.message).join('. ');
+      message = `${message} (${fieldErrors})`;
+    }
 
     return Promise.reject(new Error(message));
   }

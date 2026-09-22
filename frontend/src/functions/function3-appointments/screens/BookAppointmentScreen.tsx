@@ -77,6 +77,11 @@ export const BookAppointmentScreen: React.FC = () => {
     loadDependencies();
   }, []);
 
+  useEffect(() => {
+    if (initialVetId) setSelectedVetId(initialVetId);
+    if (initialPetId) setSelectedPetId(initialPetId);
+  }, [initialVetId, initialPetId]);
+
   const handleBook = async () => {
     if (!selectedPetId) {
       Alert.alert('Selection Required', 'Please choose a pet.');
@@ -84,6 +89,19 @@ export const BookAppointmentScreen: React.FC = () => {
     }
     if (!selectedVetId) {
       Alert.alert('Selection Required', 'Please select a veterinarian.');
+      return;
+    }
+    if (!date.trim()) {
+      Alert.alert('Missing Date', 'Please enter an appointment date.');
+      return;
+    }
+    const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!isoDateRegex.test(date.trim()) || isNaN(Date.parse(date.trim()))) {
+      Alert.alert('Invalid Date', 'Please enter a valid date in YYYY-MM-DD format (e.g. 2026-10-15).');
+      return;
+    }
+    if (!time.trim()) {
+      Alert.alert('Time Slot Required', 'Please choose a preferred time slot.');
       return;
     }
     if (!reason.trim()) {
@@ -96,8 +114,8 @@ export const BookAppointmentScreen: React.FC = () => {
       await appointmentService.createAppointment({
         petId: selectedPetId,
         veterinarianId: selectedVetId,
-        date,
-        time,
+        date: date.trim(),
+        time: time.trim(),
         reason: reason.trim(),
         notes: notes.trim() || undefined,
       });

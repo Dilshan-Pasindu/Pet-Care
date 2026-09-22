@@ -22,7 +22,11 @@ export const validateCreateAppointment: ValidationMiddleware[] = [
   body('petId').notEmpty().withMessage('Pet ID is required').isMongoId().withMessage('Invalid Pet ID'),
   body('veterinarianId').notEmpty().withMessage('Veterinarian ID is required').isMongoId().withMessage('Invalid Veterinarian ID'),
   body('date').notEmpty().withMessage('Date is required').isISO8601().withMessage('Date must be a valid date'),
-  body('time').notEmpty().withMessage('Time is required').matches(/^([01]\d|2[0-3]):([0-5]\d)$/).withMessage('Time must be in HH:MM format'),
+  body('time')
+    .notEmpty()
+    .withMessage('Time is required')
+    .matches(/^([0-1]?[0-9]|2[0-3]):[0-5]\d(\s*(AM|PM|am|pm))?$/i)
+    .withMessage('Time must be in valid format (e.g. 10:00 or 10:00 AM)'),
   body('reason').trim().notEmpty().withMessage('Reason is required').isLength({ max: 500 }).withMessage('Reason cannot exceed 500 characters'),
   body('notes').optional().trim().isLength({ max: 1000 }).withMessage('Notes cannot exceed 1000 characters'),
   handleValidationErrors,
@@ -31,7 +35,10 @@ export const validateCreateAppointment: ValidationMiddleware[] = [
 export const validateUpdateAppointment: ValidationMiddleware[] = [
   body('status').optional().isIn(['pending', 'confirmed', 'completed', 'cancelled']).withMessage('Invalid status'),
   body('date').optional().isISO8601().withMessage('Date must be a valid date'),
-  body('time').optional().matches(/^([01]\d|2[0-3]):([0-5]\d)$/).withMessage('Time must be in HH:MM format'),
+  body('time')
+    .optional()
+    .matches(/^([0-1]?[0-9]|2[0-3]):[0-5]\d(\s*(AM|PM|am|pm))?$/i)
+    .withMessage('Time must be in valid format (e.g. 10:00 or 10:00 AM)'),
   body('reason').optional().trim().isLength({ max: 500 }).withMessage('Reason cannot exceed 500 characters'),
   body('notes').optional().trim().isLength({ max: 1000 }).withMessage('Notes cannot exceed 1000 characters'),
   handleValidationErrors,
