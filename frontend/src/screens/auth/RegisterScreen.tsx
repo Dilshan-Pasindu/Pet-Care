@@ -1,6 +1,6 @@
 /**
  * screens/auth/RegisterScreen.tsx
- * Premium Registration Screen — PetCare Medical Theme
+ * Premium Register Screen — Warm Peach Pet-Care Theme
  */
 
 import React, { useState } from 'react';
@@ -13,6 +13,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -24,58 +25,40 @@ import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import { isSmallDevice } from '../../utils/responsive';
 import {
-  HeartPulse,
-  PawPrint,
-  Mail,
-  Lock,
-  User,
-  Phone,
-  ChevronLeft,
-  Stethoscope,
-  Building2,
+  PawPrint, Heart, Mail, Lock, User, Phone, ChevronLeft,
+  Stethoscope, Building2,
 } from 'lucide-react-native';
 
 type NavProp = StackNavigationProp<AuthStackParamList, 'Register'>;
-
 type UserRole = 'owner' | 'veterinarian' | 'service_center';
 
-interface RoleConfig {
-  key: UserRole;
-  label: string;
-  subtitle: string;
-  emoji: string;
-  accentColor: string;
-  accentBg: string;
-  icon: React.ReactNode;
-}
-
-const ROLES: RoleConfig[] = [
+const ROLES = [
   {
-    key: 'owner',
+    key: 'owner' as UserRole,
     label: 'Pet Owner',
     subtitle: 'Manage your companions',
     emoji: '🐾',
-    accentColor: '#1A73E8',
-    accentBg: '#E8F2FF',
-    icon: <PawPrint size={20} color="#1A73E8" strokeWidth={2.2} />,
+    color: colors.primary,
+    bg: colors.primaryLight,
+    border: `${colors.primary}40`,
   },
   {
-    key: 'veterinarian',
+    key: 'veterinarian' as UserRole,
     label: 'Veterinarian',
     subtitle: 'Licensed practitioner',
     emoji: '🩺',
-    accentColor: '#0D5DBD',
-    accentBg: '#E0ECFF',
-    icon: <Stethoscope size={20} color="#0D5DBD" strokeWidth={2.2} />,
+    color: '#5B9BD5',
+    bg: '#EDF5FF',
+    border: '#5B9BD540',
   },
   {
-    key: 'service_center',
+    key: 'service_center' as UserRole,
     label: 'Service Center',
     subtitle: 'Pet grooming & care',
     emoji: '🏢',
-    accentColor: '#00B5A3',
-    accentBg: '#E0F8F5',
-    icon: <Building2 size={20} color="#00B5A3" strokeWidth={2.2} />,
+    color: colors.secondary,
+    bg: colors.secondaryLight,
+    border: `${colors.secondary}40`,
   },
 ];
 
@@ -92,14 +75,11 @@ export const RegisterScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const selectedRole = ROLES.find((r) => r.key === role)!;
-
-  const validate = (): boolean => {
+  const validate = () => {
     const errs: Record<string, string> = {};
-    if (!name.trim())
-      errs.name = role === 'service_center' ? 'Business name is required' : 'Full name is required';
+    if (!name.trim()) errs.name = role === 'service_center' ? 'Business name is required' : 'Full name is required';
     if (!email.trim()) errs.email = 'Email address is required';
-    else if (!/\S+@\S+\.\S+/.test(email)) errs.email = 'Invalid email format';
+    else if (!/\S+@\S+\.\S+/.test(email)) errs.email = 'Enter a valid email';
     if (!password || password.length < 6) errs.password = 'Password must be at least 6 characters';
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -109,167 +89,130 @@ export const RegisterScreen: React.FC = () => {
     if (!validate()) return;
     try {
       setLoading(true);
-      await register({
-        name: name.trim(),
-        email: email.trim(),
-        password,
-        phone: phone.trim() || undefined,
-        role,
-      });
+      await register({ name: name.trim(), email: email.trim(), password, phone: phone.trim() || undefined, role });
     } catch (err: any) {
-      Alert.alert('Registration Failed', err.message || 'Could not complete registration. Please try again.');
+      Alert.alert('Registration Failed', err.message || 'Could not complete registration.');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        {/* ── Gradient Header ── */}
-        <View style={[styles.header, { paddingTop: Math.max(insets.top + 16, 32) }]}>
-          <View style={styles.circleDecor1} />
-          <View style={styles.circleDecor2} />
+  const selectedRole = ROLES.find((r) => r.key === role)!;
 
-          <TouchableOpacity
-            style={styles.backBtn}
-            onPress={() => navigation.navigate('Login')}
-          >
-            <ChevronLeft size={20} color="rgba(255,255,255,0.9)" strokeWidth={2.5} />
+  return (
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      <View style={styles.blobTR} />
+      <View style={styles.blobBL} />
+
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+
+        {/* ── Top Section ── */}
+        <View style={[styles.topSection, { paddingTop: Math.max(insets.top + 12, 28) }]}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.navigate('Welcome')}>
+            <ChevronLeft size={20} color={colors.navy} strokeWidth={2.5} />
           </TouchableOpacity>
 
-          <View style={styles.headerContent}>
-            <View style={styles.logoMark}>
-              <PawPrint size={22} color="#FFFFFF" strokeWidth={2.5} />
-              <View style={styles.logoHeart}>
-                <HeartPulse size={10} color={colors.primary} strokeWidth={2.5} />
+          <View style={styles.logoLockup}>
+            <View style={styles.logoBox}>
+              <PawPrint size={22} color={colors.primary} strokeWidth={2.5} />
+              <View style={styles.heartBadge}>
+                <Heart size={9} color={colors.primary} strokeWidth={2.5} fill={colors.primary} />
               </View>
             </View>
-            <View>
-              <Text style={styles.headerTitle}>Create Account</Text>
-              <Text style={styles.headerSub}>Join the PetCare network</Text>
-            </View>
+            <Text style={styles.logoName}>PetCare</Text>
           </View>
+
+          <Text style={styles.pageTitle}>Create your{'\n'}account ✨</Text>
+          <Text style={styles.pageSubtitle}>Join thousands of happy pet families</Text>
         </View>
 
         {/* ── Form Sheet ── */}
         <View style={[styles.formSheet, { paddingBottom: Math.max(insets.bottom + 20, 36) }]}>
 
           {/* Role Selector */}
-          <View style={styles.sectionBlock}>
-            <Text style={styles.sectionLabel}>I am a...</Text>
-            <View style={styles.roleGrid}>
-              {ROLES.map((r) => {
-                const isActive = role === r.key;
-                return (
-                  <TouchableOpacity
-                    key={r.key}
-                    style={[
-                      styles.roleCard,
-                      isActive && {
-                        borderColor: r.accentColor,
-                        backgroundColor: r.accentBg,
-                        shadowColor: r.accentColor,
-                        shadowOpacity: 0.18,
-                        shadowRadius: 10,
-                        elevation: 4,
-                      },
-                    ]}
-                    onPress={() => setRole(r.key)}
-                    activeOpacity={0.8}
-                  >
-                    <View style={[
-                      styles.roleIconBox,
-                      { backgroundColor: isActive ? r.accentColor : colors.borderLight },
-                    ]}>
-                      {isActive ? (
-                        React.cloneElement(r.icon as React.ReactElement<any>, { color: '#FFFFFF' })
-                      ) : (
-                        r.icon
-                      )}
-                    </View>
-                    <View style={styles.roleTextBlock}>
-                      <Text style={[styles.roleLabel, isActive && { color: r.accentColor }]}>
-                        {r.label}
-                      </Text>
-                      <Text style={styles.roleSub}>{r.subtitle}</Text>
-                    </View>
-                    {isActive && (
-                      <View style={[styles.roleActiveDot, { backgroundColor: r.accentColor }]} />
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+          <Text style={styles.sectionLabel}>I AM A</Text>
+          <View style={styles.roleRow}>
+            {ROLES.map((r) => {
+              const isActive = role === r.key;
+              return (
+                <TouchableOpacity
+                  key={r.key}
+                  style={[
+                    styles.roleChip,
+                    { borderColor: isActive ? r.color : colors.border, backgroundColor: isActive ? r.bg : colors.surface },
+                    isActive && { shadowColor: r.color, shadowOpacity: 0.2, shadowRadius: 10, elevation: 4 },
+                  ]}
+                  onPress={() => setRole(r.key)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.roleChipEmoji}>{r.emoji}</Text>
+                  <Text style={[styles.roleChipLabel, { color: isActive ? r.color : colors.textSecondary }]}>
+                    {r.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
-          <View style={styles.divider} />
-
-          {/* Form Fields */}
-          <View style={styles.sectionBlock}>
-            <Text style={styles.sectionLabel}>Account Details</Text>
-
-            <Input
-              label={role === 'service_center' ? 'Business Name' : 'Full Name'}
-              placeholder={role === 'service_center' ? 'Paws Spa & Grooming' : 'Jane Doe'}
-              value={name}
-              onChangeText={setName}
-              error={errors.name}
-              required
-              leftIcon={<User size={17} color={colors.textMuted} strokeWidth={2} />}
-            />
-
-            <Input
-              label="Email Address"
-              placeholder="jane@example.com"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-              error={errors.email}
-              required
-              leftIcon={<Mail size={17} color={colors.textMuted} strokeWidth={2} />}
-            />
-
-            <Input
-              label="Password"
-              placeholder="Minimum 6 characters"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-              error={errors.password}
-              required
-              leftIcon={<Lock size={17} color={colors.textMuted} strokeWidth={2} />}
-            />
-
-            <Input
-              label="Phone Number"
-              placeholder="+1 (555) 000-0000"
-              keyboardType="phone-pad"
-              value={phone}
-              onChangeText={setPhone}
-              leftIcon={<Phone size={17} color={colors.textMuted} strokeWidth={2} />}
-            />
+          <View style={styles.roleSubCard}>
+            <Text style={styles.roleSubCardText}>
+              {role === 'owner' && '🐾 Track pets, book vets, and manage health records all in one place.'}
+              {role === 'veterinarian' && '🩺 Manage consultations, patient records, and e-prescriptions.'}
+              {role === 'service_center' && '🏢 List grooming & care services, manage bookings & reviews.'}
+            </Text>
           </View>
 
-          <Button
-            title="Create My Account"
-            onPress={handleRegister}
-            loading={loading}
-            style={styles.submitBtn}
+          <View style={styles.formDivider} />
+
+          {/* Fields */}
+          <Text style={styles.sectionLabel}>ACCOUNT DETAILS</Text>
+
+          <Input
+            label={role === 'service_center' ? 'Business Name' : 'Full Name'}
+            placeholder={role === 'service_center' ? 'Paws Spa & Grooming' : 'Jane Doe'}
+            value={name}
+            onChangeText={setName}
+            error={errors.name}
+            required
+            leftIcon={<User size={17} color={colors.textMuted} strokeWidth={2} />}
+          />
+          <Input
+            label="Email Address"
+            placeholder="jane@example.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
+            error={errors.email}
+            required
+            leftIcon={<Mail size={17} color={colors.textMuted} strokeWidth={2} />}
+          />
+          <Input
+            label="Password"
+            placeholder="Minimum 6 characters"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+            error={errors.password}
+            required
+            leftIcon={<Lock size={17} color={colors.textMuted} strokeWidth={2} />}
+          />
+          <Input
+            label="Phone Number"
+            placeholder="+1 (555) 000-0000"
+            keyboardType="phone-pad"
+            value={phone}
+            onChangeText={setPhone}
+            leftIcon={<Phone size={17} color={colors.textMuted} strokeWidth={2} />}
           />
 
+          <Button title="Create Account" onPress={handleRegister} loading={loading} style={styles.submitBtn} />
+
           <View style={styles.footerRow}>
-            <Text style={styles.footerText}>Already have an account? </Text>
+            <Text style={styles.footerText}>Already registered? </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-              <Text style={styles.signInLink}>Sign In</Text>
+              <Text style={styles.footerLink}>Sign In</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -279,185 +222,62 @@ export const RegisterScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.primary,
-  },
+  container: { flex: 1, backgroundColor: colors.background },
+  blobTR: { position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: '#FFD9C4', opacity: 0.5, top: -60, right: -60 },
+  blobBL: { position: 'absolute', width: 160, height: 160, borderRadius: 80, backgroundColor: '#C9F0DF', opacity: 0.4, bottom: 80, left: -60 },
 
-  // ── Header ──
-  header: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 24,
-    paddingBottom: 28,
-    overflow: 'hidden',
-  },
-  circleDecor1: {
-    position: 'absolute',
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    top: -50,
-    right: -40,
-  },
-  circleDecor2: {
-    position: 'absolute',
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    bottom: -20,
-    left: -20,
-  },
+  topSection: { paddingHorizontal: 24, paddingBottom: 24 },
   backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    width: 40, height: 40, borderRadius: 14, backgroundColor: colors.surface,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 20,
+    shadowColor: colors.shadow, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 3,
+    borderWidth: 1, borderColor: colors.border,
   },
-  headerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
+  logoLockup: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 22 },
+  logoBox: {
+    width: 40, height: 40, borderRadius: 13, backgroundColor: colors.primaryLight,
+    alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: `${colors.primary}30`,
   },
-  logoMark: {
-    width: 50,
-    height: 50,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.3)',
+  heartBadge: {
+    position: 'absolute', right: -6, bottom: -6, width: 18, height: 18, borderRadius: 7,
+    backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: colors.border,
   },
-  logoHeart: {
-    position: 'absolute',
-    right: -5,
-    bottom: -5,
-    width: 20,
-    height: 20,
-    borderRadius: 7,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
+  logoName: { fontSize: 20, fontWeight: '900', color: colors.navy, letterSpacing: -0.4 },
+  pageTitle: {
+    fontSize: isSmallDevice ? 26 : 32, fontWeight: '900', color: colors.navy,
+    letterSpacing: -0.8, lineHeight: isSmallDevice ? 32 : 38, marginBottom: 8,
   },
-  headerTitle: {
-    fontSize: isSmallDevice ? 22 : 26,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    letterSpacing: -0.6,
-  },
-  headerSub: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: 'rgba(255,255,255,0.7)',
-    marginTop: 2,
-  },
+  pageSubtitle: { fontSize: 14, color: colors.textSecondary, fontWeight: '500' },
 
-  // ── Form Sheet ──
   formSheet: {
-    flex: 1,
-    backgroundColor: colors.background,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    paddingHorizontal: isSmallDevice ? 18 : 24,
-    paddingTop: 28,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: -8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    elevation: 16,
-  },
-  sectionBlock: {
-    marginBottom: 4,
+    flex: 1, backgroundColor: colors.surface, borderTopLeftRadius: 32, borderTopRightRadius: 32,
+    paddingHorizontal: isSmallDevice ? 20 : 26, paddingTop: 28,
+    shadowColor: colors.shadow, shadowOffset: { width: 0, height: -6 }, shadowOpacity: 0.1, shadowRadius: 20, elevation: 14,
+    borderWidth: 1, borderColor: colors.border,
   },
   sectionLabel: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: colors.textSecondary,
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    marginBottom: 14,
+    fontSize: 11, fontWeight: '800', color: colors.textMuted, letterSpacing: 1.5,
+    textTransform: 'uppercase', marginBottom: 12,
   },
-
-  // ── Role Selector ──
-  roleGrid: {
-    gap: 10,
-    marginBottom: 10,
+  roleRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  roleChip: {
+    flex: 1, borderRadius: 16, borderWidth: 1.5, paddingVertical: 12, paddingHorizontal: 6,
+    alignItems: 'center', gap: 5,
+    shadowColor: 'transparent', shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0, shadowRadius: 0, elevation: 0,
   },
-  roleCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    gap: 12,
-    shadowColor: 'transparent',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
+  roleChipEmoji: { fontSize: 22 },
+  roleChipLabel: { fontSize: 11, fontWeight: '700', textAlign: 'center' },
+  roleSubCard: {
+    backgroundColor: colors.primaryLight, borderRadius: 12, padding: 12, marginBottom: 14,
+    borderWidth: 1, borderColor: `${colors.primary}20`,
   },
-  roleIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  roleTextBlock: {
-    flex: 1,
-  },
-  roleLabel: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: colors.text,
-    letterSpacing: -0.2,
-  },
-  roleSub: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    fontWeight: '500',
-    marginTop: 1,
-  },
-  roleActiveDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-
-  divider: {
-    height: 1,
-    backgroundColor: colors.borderLight,
-    marginVertical: 20,
-  },
-  submitBtn: {
-    marginTop: 8,
-    marginBottom: 18,
-  },
-  footerRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-  },
-  footerText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    fontWeight: '500',
-  },
-  signInLink: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: colors.primary,
-  },
+  roleSubCardText: { fontSize: 12, color: colors.primaryDark, fontWeight: '600', lineHeight: 18 },
+  formDivider: { height: 1, backgroundColor: colors.borderLight, marginBottom: 20 },
+  submitBtn: { marginTop: 4, marginBottom: 18 },
+  footerRow: { flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap' },
+  footerText: { fontSize: 13, color: colors.textSecondary, fontWeight: '500' },
+  footerLink: { fontSize: 13, fontWeight: '800', color: colors.primary },
 });
 
 export default RegisterScreen;

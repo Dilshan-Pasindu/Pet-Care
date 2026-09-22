@@ -1,6 +1,6 @@
 /**
  * screens/auth/LoginScreen.tsx
- * Premium Login Screen — PetCare Medical Theme
+ * Premium Login Screen — Warm Peach Pet-Care Theme
  */
 
 import React, { useState } from 'react';
@@ -14,7 +14,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Dimensions,
-  Image,
+  StatusBar,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -26,18 +26,16 @@ import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import { isSmallDevice } from '../../utils/responsive';
 import {
-  HeartPulse,
   PawPrint,
-  ShieldCheck,
-  Lock,
   Mail,
-  Stethoscope,
-  Sparkles,
+  Lock,
+  ChevronLeft,
+  Heart,
+  ShieldCheck,
 } from 'lucide-react-native';
 
 type NavProp = StackNavigationProp<AuthStackParamList, 'Login'>;
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { height: H } = Dimensions.get('window');
 
 export const LoginScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -49,10 +47,10 @@ export const LoginScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const validate = (): boolean => {
+  const validate = () => {
     const errs: Record<string, string> = {};
     if (!email.trim()) errs.email = 'Email address is required';
-    else if (!/\S+@\S+\.\S+/.test(email)) errs.email = 'Invalid email format';
+    else if (!/\S+@\S+\.\S+/.test(email)) errs.email = 'Enter a valid email';
     if (!password) errs.password = 'Password is required';
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -75,74 +73,58 @@ export const LoginScreen: React.FC = () => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+
+      {/* ── Background blobs ── */}
+      <View style={styles.blobTR} />
+      <View style={styles.blobBL} />
+
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Gradient Hero Header ── */}
-        <View style={[styles.heroSection, { paddingTop: Math.max(insets.top + 20, 40) }]}>
-          {/* Background decorative circles */}
-          <View style={styles.circleDecor1} />
-          <View style={styles.circleDecor2} />
-          <View style={styles.circleDecor3} />
+        {/* ── Top Section ── */}
+        <View style={[styles.topSection, { paddingTop: Math.max(insets.top + 12, 28) }]}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.navigate('Welcome')}>
+            <ChevronLeft size={20} color={colors.navy} strokeWidth={2.5} />
+          </TouchableOpacity>
 
-          {/* Brand Mark */}
-          <View style={styles.brandLockup}>
-            <View style={styles.logoRing}>
-              <View style={styles.logoInner}>
-                <PawPrint size={28} color="#FFFFFF" strokeWidth={2.5} />
-              </View>
-              <View style={styles.logoHeartBadge}>
-                <HeartPulse size={11} color={colors.primary} strokeWidth={2.5} />
+          {/* Logo */}
+          <View style={styles.logoLockup}>
+            <View style={styles.logoBox}>
+              <PawPrint size={22} color={colors.primary} strokeWidth={2.5} />
+              <View style={styles.heartBadge}>
+                <Heart size={9} color={colors.primary} strokeWidth={2.5} fill={colors.primary} />
               </View>
             </View>
-
-            <View style={styles.brandTextGroup}>
-              <Text style={styles.eyebrow}>PET HEALTH PLATFORM</Text>
-              <Text style={styles.brandTitle}>PetCare</Text>
-            </View>
+            <Text style={styles.logoName}>PetCare</Text>
           </View>
 
-          <Text style={styles.heroHeadline}>Your pet's health,{'\n'}always within reach.</Text>
+          <Text style={styles.pageTitle}>Welcome{'\n'}back! 👋</Text>
+          <Text style={styles.pageSubtitle}>Sign in to your care portal</Text>
 
-          {/* Trust Pills */}
-          <View style={styles.trustRow}>
-            <View style={styles.trustPill}>
-              <ShieldCheck size={12} color="rgba(255,255,255,0.9)" strokeWidth={2.5} />
-              <Text style={styles.trustPillText}>Verified Vets</Text>
-            </View>
-            <View style={styles.trustPill}>
-              <Sparkles size={12} color="rgba(255,255,255,0.9)" strokeWidth={2.5} />
-              <Text style={styles.trustPillText}>10k+ Pets Cared</Text>
-            </View>
-            <View style={styles.trustPill}>
-              <Stethoscope size={12} color="rgba(255,255,255,0.9)" strokeWidth={2.5} />
-              <Text style={styles.trustPillText}>24/7 Records</Text>
-            </View>
+          {/* Pet emoji decoration */}
+          <View style={styles.petEmojiRow}>
+            {['🐶', '🐱', '🐦', '🐢'].map((e, i) => (
+              <View key={i} style={[styles.emojiChip, { backgroundColor: [colors.primaryLight, colors.secondaryLight, '#EDF5FF', colors.accentLight][i] }]}>
+                <Text style={styles.emojiChipText}>{e}</Text>
+              </View>
+            ))}
           </View>
         </View>
 
-        {/* ── Glass Form Card ── */}
-        <View style={[styles.formCard, { paddingBottom: Math.max(insets.bottom + 16, 32) }]}>
-          {/* Form Header */}
-          <View style={styles.formHeader}>
-            <View>
-              <Text style={styles.welcomeBack}>Welcome back</Text>
-              <Text style={styles.signInInstruction}>Sign in to your care portal</Text>
-            </View>
-            <View style={styles.secureChip}>
-              <ShieldCheck size={15} color={colors.secondary} strokeWidth={2.5} />
-              <Text style={styles.secureChipText}>Secure</Text>
-            </View>
-          </View>
+        {/* ── Form Card ── */}
+        <View style={[styles.formCard, { paddingBottom: Math.max(insets.bottom + 20, 36) }]}>
 
-          {/* Divider */}
-          <View style={styles.formDivider} />
+          <View style={styles.secureRow}>
+            <ShieldCheck size={14} color={colors.secondary} strokeWidth={2.5} />
+            <Text style={styles.secureText}>Secure Login · End-to-End Protected</Text>
+          </View>
 
           <Input
             label="Email Address"
-            placeholder="your.email@example.com"
+            placeholder="your@email.com"
             keyboardType="email-address"
             autoCapitalize="none"
             value={email}
@@ -153,7 +135,7 @@ export const LoginScreen: React.FC = () => {
 
           <Input
             label="Password"
-            placeholder="Enter your password"
+            placeholder="Your password"
             secureTextEntry
             value={password}
             onChangeText={setPassword}
@@ -162,24 +144,31 @@ export const LoginScreen: React.FC = () => {
           />
 
           <Button
-            title="Sign In to PetCare"
+            title="Sign In"
             onPress={handleLogin}
             loading={loading}
-            style={styles.signInBtn}
+            style={styles.loginBtn}
           />
+
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <TouchableOpacity
+            style={styles.createAccountBtn}
+            onPress={() => navigation.navigate('Register')}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.createAccountBtnText}>Create New Account</Text>
+          </TouchableOpacity>
 
           <View style={styles.footerRow}>
             <Text style={styles.footerText}>Don't have an account? </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-              <Text style={styles.createAccountLink}>Create One</Text>
+              <Text style={styles.footerLink}>Register here</Text>
             </TouchableOpacity>
-          </View>
-
-          {/* Portal hint */}
-          <View style={styles.portalsHint}>
-            <Text style={styles.portalsHintText}>
-              One account, four portals: Owner · Vet · Service Center · Admin
-            </Text>
           </View>
         </View>
       </ScrollView>
@@ -190,212 +179,196 @@ export const LoginScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.background,
   },
 
-  // ── Hero Section ──
-  heroSection: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 28,
-    paddingBottom: 36,
-    overflow: 'hidden',
-  },
-  circleDecor1: {
+  // Blobs
+  blobTR: {
     position: 'absolute',
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: '#FFD9C4',
+    opacity: 0.5,
     top: -60,
     right: -60,
   },
-  circleDecor2: {
+  blobBL: {
     position: 'absolute',
     width: 160,
     height: 160,
     borderRadius: 80,
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    bottom: 10,
-    left: -50,
+    backgroundColor: '#C9F0DF',
+    opacity: 0.4,
+    bottom: 100,
+    left: -60,
   },
-  circleDecor3: {
-    position: 'absolute',
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    top: 60,
-    left: 30,
+
+  // ── Top Section ──
+  topSection: {
+    paddingHorizontal: 24,
+    paddingBottom: 24,
   },
-  brandLockup: {
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  logoLockup: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
-    gap: 14,
+    gap: 8,
+    marginBottom: 22,
   },
-  logoRing: {
-    width: 60,
-    height: 60,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+  logoBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 13,
+    backgroundColor: colors.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.35)',
+    borderColor: `${colors.primary}30`,
   },
-  logoInner: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoHeartBadge: {
+  heartBadge: {
     position: 'absolute',
-    right: -5,
-    bottom: -5,
-    width: 22,
-    height: 22,
-    borderRadius: 8,
+    right: -6,
+    bottom: -6,
+    width: 18,
+    height: 18,
+    borderRadius: 7,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  brandTextGroup: {},
-  eyebrow: {
-    fontSize: 9,
-    fontWeight: '800',
-    color: 'rgba(255,255,255,0.65)',
-    letterSpacing: 1.8,
-    textTransform: 'uppercase',
-    marginBottom: 2,
-  },
-  brandTitle: {
-    fontSize: 26,
+  logoName: {
+    fontSize: 20,
     fontWeight: '900',
-    color: '#FFFFFF',
+    color: colors.navy,
+    letterSpacing: -0.4,
+  },
+  pageTitle: {
+    fontSize: isSmallDevice ? 28 : 34,
+    fontWeight: '900',
+    color: colors.navy,
     letterSpacing: -0.8,
+    lineHeight: isSmallDevice ? 34 : 40,
+    marginBottom: 8,
   },
-  heroHeadline: {
-    fontSize: isSmallDevice ? 26 : 30,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    lineHeight: isSmallDevice ? 33 : 38,
-    letterSpacing: -0.6,
-    marginBottom: 22,
+  pageSubtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    fontWeight: '500',
+    marginBottom: 20,
   },
-  trustRow: {
+  petEmojiRow: {
     flexDirection: 'row',
     gap: 8,
-    flexWrap: 'wrap',
   },
-  trustPill: {
-    flexDirection: 'row',
+  emojiChip: {
+    width: 40,
+    height: 40,
+    borderRadius: 14,
     alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.25)',
+    justifyContent: 'center',
   },
-  trustPillText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.92)',
-  },
+  emojiChipText: { fontSize: 20 },
 
   // ── Form Card ──
   formCard: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     paddingHorizontal: isSmallDevice ? 20 : 26,
     paddingTop: 28,
     shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: -8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    elevation: 16,
+    shadowOffset: { width: 0, height: -6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  formHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  welcomeBack: {
-    fontSize: isSmallDevice ? 22 : 25,
-    fontWeight: '800',
-    color: colors.navy,
-    letterSpacing: -0.5,
-  },
-  signInInstruction: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    marginTop: 3,
-    fontWeight: '500',
-  },
-  secureChip: {
+  secureRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
     backgroundColor: colors.secondaryLight,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    marginBottom: 20,
+    alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: `${colors.secondary}30`,
+    borderColor: `${colors.secondary}25`,
   },
-  secureChipText: {
+  secureText: {
     fontSize: 11,
     fontWeight: '700',
     color: colors.secondaryDark,
   },
-  formDivider: {
+  loginBtn: {
+    marginTop: 4,
+    marginBottom: 20,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  dividerLine: {
+    flex: 1,
     height: 1,
     backgroundColor: colors.borderLight,
-    marginBottom: 22,
   },
-  signInBtn: {
-    marginTop: 4,
-    marginBottom: 18,
+  dividerText: {
+    fontSize: 13,
+    color: colors.textMuted,
+    fontWeight: '600',
+  },
+  createAccountBtn: {
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    borderRadius: 16,
+    paddingVertical: 15,
+    alignItems: 'center',
+    marginBottom: 20,
+    backgroundColor: colors.primaryLight,
+  },
+  createAccountBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.primary,
   },
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     flexWrap: 'wrap',
-    marginBottom: 16,
   },
   footerText: {
-    fontSize: 14,
+    fontSize: 13,
     color: colors.textSecondary,
     fontWeight: '500',
   },
-  createAccountLink: {
-    fontSize: 14,
+  footerLink: {
+    fontSize: 13,
     fontWeight: '800',
     color: colors.primary,
-  },
-  portalsHint: {
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: colors.navyLight,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-  },
-  portalsHintText: {
-    fontSize: 11,
-    color: colors.textMuted,
-    fontWeight: '600',
-    textAlign: 'center',
-    letterSpacing: 0.2,
   },
 });
 

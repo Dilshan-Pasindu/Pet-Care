@@ -46,7 +46,7 @@ export const Button: React.FC<ButtonProps> = ({
     if (disabled) return colors.border;
     switch (variant) {
       case 'secondary':
-        return colors.primary;
+        return colors.secondary;
       case 'teal':
         return colors.secondary;
       case 'danger':

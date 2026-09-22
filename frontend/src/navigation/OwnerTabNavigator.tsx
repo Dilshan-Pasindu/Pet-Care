@@ -1,10 +1,10 @@
 /**
  * navigation/OwnerTabNavigator.tsx
- * Premium Tab Navigator for Pet Owners — PetCare Medical Theme
+ * Premium Tab Navigator for Pet Owners — Warm Peach Theme
  */
 
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Home, PawPrint, Stethoscope, Calendar, Sparkles, User } from 'lucide-react-native';
@@ -38,37 +38,26 @@ const TAB_ITEMS = [
   { name: 'ProfileTab', label: 'Profile', Icon: User },
 ];
 
-const PremiumTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
+const PremiumTabBar: React.FC<BottomTabBarProps> = ({ state, navigation }) => {
   const insets = useSafeAreaInsets();
-
   return (
-    <View style={[styles.tabBarContainer, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+    <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
       {state.routes.map((route, index) => {
-        const { options } = descriptors[route.key];
         const isFocused = state.index === index;
         const tabItem = TAB_ITEMS.find((t) => t.name === route.name);
         if (!tabItem) return null;
         const { label, Icon } = tabItem;
         const iconColor = isFocused ? colors.primary : colors.textMuted;
-
         const onPress = () => {
           const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
           if (!isFocused && !event.defaultPrevented) navigation.navigate(route.name as any);
         };
-
         return (
-          <TouchableOpacity
-            key={route.key}
-            style={styles.tabItem}
-            onPress={onPress}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.iconWrapper, isFocused && styles.iconWrapperActive]}>
+          <TouchableOpacity key={route.key} style={styles.tabItem} onPress={onPress} activeOpacity={0.7}>
+            <View style={[styles.iconWrap, isFocused && styles.iconWrapActive]}>
               <Icon size={22} color={iconColor} strokeWidth={isFocused ? 2.5 : 2} />
             </View>
-            <Text style={[styles.tabLabel, { color: iconColor, fontWeight: isFocused ? '800' : '600' }]}>
-              {label}
-            </Text>
+            <Text style={[styles.label, { color: iconColor, fontWeight: isFocused ? '800' : '600' }]}>{label}</Text>
           </TouchableOpacity>
         );
       })}
@@ -76,54 +65,28 @@ const PremiumTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, naviga
   );
 };
 
-export const OwnerTabNavigator: React.FC = () => {
-  return (
-    <Tab.Navigator
-      tabBar={(props) => <PremiumTabBar {...props} />}
-      screenOptions={{ headerShown: false }}
-    >
-      <Tab.Screen name="HomeTab" component={HomeScreen} />
-      <Tab.Screen name="PetsTab" component={PetListScreen} />
-      <Tab.Screen name="VetsTab" component={VetListScreen} />
-      <Tab.Screen name="AppointmentsTab" component={AppointmentListScreen} />
-      <Tab.Screen name="ServicesTab" component={ServiceListScreen} />
-      <Tab.Screen name="ProfileTab" component={ProfileScreen} />
-    </Tab.Navigator>
-  );
-};
+export const OwnerTabNavigator: React.FC = () => (
+  <Tab.Navigator tabBar={(p) => <PremiumTabBar {...p} />} screenOptions={{ headerShown: false }}>
+    <Tab.Screen name="HomeTab" component={HomeScreen} />
+    <Tab.Screen name="PetsTab" component={PetListScreen} />
+    <Tab.Screen name="VetsTab" component={VetListScreen} />
+    <Tab.Screen name="AppointmentsTab" component={AppointmentListScreen} />
+    <Tab.Screen name="ServicesTab" component={ServiceListScreen} />
+    <Tab.Screen name="ProfileTab" component={ProfileScreen} />
+  </Tab.Navigator>
+);
 
 const styles = StyleSheet.create({
-  tabBarContainer: {
-    flexDirection: 'row',
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderLight,
-    paddingTop: 8,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: -6 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 16,
+  tabBar: {
+    flexDirection: 'row', backgroundColor: colors.surface,
+    borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 8,
+    shadowColor: colors.shadow, shadowOffset: { width: 0, height: -5 },
+    shadowOpacity: 0.08, shadowRadius: 14, elevation: 14,
   },
-  tabItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 3,
-  },
-  iconWrapper: {
-    width: 44,
-    height: 34,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconWrapperActive: {
-    backgroundColor: colors.primaryLight,
-  },
-  tabLabel: {
-    fontSize: 10,
-    letterSpacing: 0.1,
-  },
+  tabItem: { flex: 1, alignItems: 'center', gap: 3 },
+  iconWrap: { width: 44, height: 34, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  iconWrapActive: { backgroundColor: colors.primaryLight },
+  label: { fontSize: 10, letterSpacing: 0.1 },
 });
 
 export default OwnerTabNavigator;

@@ -1,6 +1,6 @@
 /**
  * navigation/MainTabNavigator.tsx
- * Premium Bottom Tab Navigator — PetCare Owner Theme
+ * Premium Main Tab Navigator — Warm Peach Theme
  */
 
 import React from 'react';
@@ -30,10 +30,10 @@ const TAB_ITEMS = [
   { name: 'ProfileTab', label: 'Profile', Icon: User },
 ];
 
-const PremiumTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {
+const PremiumTabBar: React.FC<BottomTabBarProps> = ({ state, navigation }) => {
   const insets = useSafeAreaInsets();
   return (
-    <View style={[styles.tabBarContainer, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+    <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
       {state.routes.map((route, index) => {
         const isFocused = state.index === index;
         const tabItem = TAB_ITEMS.find((t) => t.name === route.name);
@@ -46,12 +46,10 @@ const PremiumTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, naviga
         };
         return (
           <TouchableOpacity key={route.key} style={styles.tabItem} onPress={onPress} activeOpacity={0.7}>
-            <View style={[styles.iconWrapper, isFocused && styles.iconWrapperActive]}>
+            <View style={[styles.iconWrap, isFocused && styles.iconWrapActive]}>
               <Icon size={22} color={iconColor} strokeWidth={isFocused ? 2.5 : 2} />
             </View>
-            <Text style={[styles.tabLabel, { color: iconColor, fontWeight: isFocused ? '800' : '600' }]}>
-              {label}
-            </Text>
+            <Text style={[styles.label, { color: iconColor, fontWeight: isFocused ? '800' : '600' }]}>{label}</Text>
           </TouchableOpacity>
         );
       })}
@@ -60,7 +58,7 @@ const PremiumTabBar: React.FC<BottomTabBarProps> = ({ state, descriptors, naviga
 };
 
 export const MainTabNavigator: React.FC = () => (
-  <Tab.Navigator tabBar={(props) => <PremiumTabBar {...props} />} screenOptions={{ headerShown: false }}>
+  <Tab.Navigator tabBar={(p) => <PremiumTabBar {...p} />} screenOptions={{ headerShown: false }}>
     <Tab.Screen name="HomeTab" component={HomeScreen} />
     <Tab.Screen name="PetsTab" component={PetListScreen} />
     <Tab.Screen name="VetsTab" component={VetListScreen} />
@@ -71,28 +69,16 @@ export const MainTabNavigator: React.FC = () => (
 );
 
 const styles = StyleSheet.create({
-  tabBarContainer: {
-    flexDirection: 'row',
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderLight,
-    paddingTop: 8,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: -6 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 16,
+  tabBar: {
+    flexDirection: 'row', backgroundColor: colors.surface,
+    borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 8,
+    shadowColor: colors.shadow, shadowOffset: { width: 0, height: -5 },
+    shadowOpacity: 0.08, shadowRadius: 14, elevation: 14,
   },
   tabItem: { flex: 1, alignItems: 'center', gap: 3 },
-  iconWrapper: {
-    width: 44,
-    height: 34,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconWrapperActive: { backgroundColor: colors.primaryLight },
-  tabLabel: { fontSize: 10, letterSpacing: 0.1 },
+  iconWrap: { width: 44, height: 34, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  iconWrapActive: { backgroundColor: colors.primaryLight },
+  label: { fontSize: 10, letterSpacing: 0.1 },
 });
 
 export default MainTabNavigator;

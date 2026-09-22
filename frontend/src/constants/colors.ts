@@ -1,83 +1,98 @@
 /**
  * constants/colors.ts
- * PetCare Premium UI Theme & Palette
- * Clinical blue + healing teal — trust, warmth, and professionalism.
+ * PetCare Warm Theme — Peach, Coral & Mint Palette
+ * Inspired by modern pet adoption & care UI
  */
 
 export const colors = {
-  // === PRIMARY — Clinical Blue ===
-  primary: '#1A73E8',
-  primaryDark: '#0D5DBD',
-  primaryDeep: '#0A47A0',
-  primaryLight: '#E8F2FF',
-  primaryMid: '#4D96F5',
+  // === PRIMARY — Coral Orange ===
+  primary: '#FF6B35',
+  primaryDark: '#E85A26',
+  primaryDeep: '#C74718',
+  primaryLight: '#FFF0EB',
+  primaryMid: '#FF8A5F',
 
-  // === SECONDARY — Healing Teal ===
-  secondary: '#00B5A3',
-  secondaryDark: '#008F80',
-  secondaryLight: '#E0F8F5',
-  teal: '#00B5A3',
-  tealLight: '#E0F8F5',
-  tealMid: '#33C5B5',
+  // === SECONDARY — Mint Green ===
+  secondary: '#4CAF8D',
+  secondaryDark: '#357A62',
+  secondaryLight: '#E8F8F1',
+  teal: '#4CAF8D',
+  tealLight: '#E8F8F1',
+  tealMid: '#6BC4A0',
 
   // === HERO GRADIENTS ===
-  heroGradientStart: '#1A73E8',
-  heroGradientEnd: '#0A47A0',
-  vetGradientStart: '#1558CC',
-  vetGradientEnd: '#0D3A8A',
-  adminGradientStart: '#1B2A4A',
-  adminGradientEnd: '#0D1B33',
-  serviceCenterGradientStart: '#007A6D',
-  serviceCenterGradientEnd: '#004D45',
+  heroGradientStart: '#FF9A7A',
+  heroGradientEnd: '#FF6B35',
+  vetGradientStart: '#5B9BD5',
+  vetGradientEnd: '#3A7FBF',
+  adminGradientStart: '#4A5568',
+  adminGradientEnd: '#2D3748',
+  serviceCenterGradientStart: '#4CAF8D',
+  serviceCenterGradientEnd: '#357A62',
 
-  // === ACCENT ===
-  accent: '#FF9F43',
-  accentLight: '#FFF3E3',
-  accentDark: '#E8850C',
+  // === ACCENT PALETTE ===
+  accent: '#C9B1FF',       // Soft lavender
+  accentLight: '#F3EFFF',
+  accentDark: '#9B7AE0',
+  accentCoral: '#FF8A5F',
+  accentMint: '#A8D5BA',
+  accentPeach: '#FFCBA4',
+  accentYellow: '#FFD166',
 
   // === SEMANTIC ===
-  danger: '#EF3F5F',
-  dangerLight: '#FDEDF1',
-  dangerDark: '#C42042',
-  warning: '#F59E0B',
-  warningLight: '#FEF3C7',
-  success: '#00B5A3',
-  successLight: '#E0F8F5',
+  danger: '#FF4757',
+  dangerLight: '#FFF0F1',
+  dangerDark: '#CC2E3D',
+  warning: '#FFA502',
+  warningLight: '#FFF7E6',
+  success: '#4CAF8D',
+  successLight: '#E8F8F1',
 
   // === SURFACES ===
-  background: '#EDF3FB',
-  backgroundDeep: '#E2ECF8',
+  background: '#FFF8F3',      // Warm cream
+  backgroundDeep: '#FFEDE0',  // Soft peach
   surface: '#FFFFFF',
-  surfaceMuted: '#F8FAFD',
+  surfaceMuted: '#FDF5EF',
   surfaceElevated: '#FFFFFF',
-  glass: 'rgba(255, 255, 255, 0.85)',
-  glassStroke: 'rgba(255, 255, 255, 0.6)',
-  overlay: 'rgba(10, 30, 60, 0.45)',
+  surfacePeach: '#FFF0E8',
+  glass: 'rgba(255, 255, 255, 0.88)',
+  glassStroke: 'rgba(255, 255, 255, 0.65)',
+  overlay: 'rgba(45, 30, 20, 0.45)',
 
   // === TEXT ===
-  text: '#101D2E',
-  textSecondary: '#5B7089',
-  textMuted: '#8AA0B5',
-  textPlaceholder: '#A5BAC9',
+  text: '#2D2D2D',
+  textSecondary: '#8A7570',
+  textMuted: '#B8A9A3',
+  textPlaceholder: '#CFC0BA',
   textInverse: '#FFFFFF',
-  textOnDark: 'rgba(255,255,255,0.9)',
+  textOnDark: 'rgba(255,255,255,0.92)',
 
   // === BORDERS ===
-  border: '#D5E3EF',
-  borderLight: '#E8F0F7',
-  borderStrong: '#B8CFE0',
+  border: '#F0E4DC',
+  borderLight: '#F7EDE6',
+  borderStrong: '#DDD0C8',
 
   // === SHADOWS ===
-  shadow: '#0B2342',
-  shadowBlue: '#1A73E8',
-  shadowTeal: '#00B5A3',
+  shadow: '#C4907A',
+  shadowOrange: '#FF6B35',
+  shadowMint: '#4CAF8D',
 
-  // === PORTAL ACCENT COLORS ===
-  navy: '#0B2342',
-  navyMid: '#1B3A5C',
-  navyLight: '#EAF0F8',
-  adminRed: '#DC2626',
-  adminRedLight: '#FEF2F2',
+  // === PORTAL SPECIFIC ===
+  navy: '#2D2D2D',
+  navyMid: '#4A3F3A',
+  navyLight: '#FFF5EF',
+  adminRed: '#FF4757',
+  adminRedLight: '#FFF0F1',
+
+  // === CATEGORY COLORS ===
+  catColor: '#FF6B35',
+  catBg: '#FFF0EB',
+  dogColor: '#4CAF8D',
+  dogBg: '#E8F8F1',
+  birdColor: '#5B9BD5',
+  birdBg: '#EDF5FF',
+  otherColor: '#C9B1FF',
+  otherBg: '#F3EFFF',
 };
 
 export default colors;
