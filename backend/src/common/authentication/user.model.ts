@@ -51,7 +51,17 @@ const userSchema = new Schema<IUser>(
 
     role: {
       type: String,
-      enum: ['owner', 'veterinarian', 'admin'] as UserRole[],
+      enum: [
+        'owner',
+        'customer',
+        'veterinarian',
+        'service_center',
+        'admin',
+        'CUSTOMER',
+        'VETERINARIAN',
+        'SERVICE_CENTER',
+        'ADMIN',
+      ] as UserRole[],
       default: 'owner' as UserRole,
     },
 
@@ -68,8 +78,16 @@ const userSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
-// ─── Pre-save: Hash password ──────────────────────────────────
+// ─── Pre-save: Normalize role & Hash password ─────────────────
 userSchema.pre<IUser>('save', async function (next) {
+  if (this.role) {
+    const r = (this.role as string).toLowerCase();
+    if (r === 'customer' || r === 'owner') this.role = 'owner';
+    else if (r === 'veterinarian') this.role = 'veterinarian';
+    else if (r === 'service_center') this.role = 'service_center';
+    else if (r === 'admin') this.role = 'admin';
+  }
+
   if (!this.isModified('password')) return next();
 
   const salt = await bcrypt.genSalt(10);

@@ -16,11 +16,13 @@ import { validateCreatePet, validateUpdatePet } from './pet.validation';
 import { protect } from '../../middleware/authMiddleware';
 import { uploadSingle } from '../../middleware/uploadMiddleware';
 
+import { authorize } from '../../middleware/roleMiddleware';
+
 const router = Router();
 
 router.use(protect);
 
-router.post('/', uploadSingle('image'), validateCreatePet, createPet);
+router.post('/', authorize('owner', 'customer'), uploadSingle('image'), validateCreatePet, createPet);
 router.get('/', getPets);
 router.get('/:id', getPet);
 router.put('/:id', uploadSingle('image'), validateUpdatePet, updatePet);

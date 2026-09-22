@@ -24,6 +24,7 @@ import {
   Shield,
   Stethoscope,
   PawPrint,
+  Building2,
   ChevronRight,
 } from 'lucide-react-native';
 import authService from '../../services/authService';
@@ -35,7 +36,7 @@ import Badge from '../../components/common/Badge';
 import Loading from '../../components/common/Loading';
 import { isSmallDevice } from '../../utils/responsive';
 
-type FilterTab = 'all' | 'owner' | 'veterinarian' | 'admin' | 'deactivated';
+type FilterTab = 'all' | 'owner' | 'veterinarian' | 'service_center' | 'admin' | 'deactivated';
 
 export const AdminManagementScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -116,8 +117,9 @@ export const AdminManagementScreen: React.FC = () => {
     }
 
     const availableRoles: Array<{ label: string; role: UserRole }> = [
-      { label: '🐶 Pet Owner', role: 'owner' },
+      { label: '🐶 Customer', role: 'owner' },
       { label: '👨‍⚕️ Veterinarian', role: 'veterinarian' },
+      { label: '🏢 Pet-Care Service Center', role: 'service_center' },
       { label: '🛡️ Administrator', role: 'admin' },
     ];
 
@@ -126,16 +128,16 @@ export const AdminManagementScreen: React.FC = () => {
       `Select a new system role for "${targetUser.name}":`,
       [
         ...availableRoles.map(({ label, role }) => ({
-          text: `${label} ${targetUser.role === role ? '(Current)' : ''}`,
+          text: `${label} ${targetUser.role.toLowerCase() === role ? '(Current)' : ''}`,
           onPress: async () => {
-            if (targetUser.role === role) return;
+            if (targetUser.role.toLowerCase() === role) return;
             try {
               setUpdatingId(targetUser._id);
               await authService.setUserRole(targetUser._id, role);
               setUsers((prev) =>
                 prev.map((u) => (u._id === targetUser._id ? { ...u, role } : u))
               );
-              Alert.alert('Success', `Role updated to ${role}.`);
+              Alert.alert('Success', `Role updated to ${label}.`);
             } catch (err: any) {
               Alert.alert('Role Update Failed', err.message || 'Could not change role');
             } finally {
@@ -150,8 +152,11 @@ export const AdminManagementScreen: React.FC = () => {
 
   // Compute stats
   const totalCount = users.length;
-  const vetCount = users.filter((u) => u.role === 'veterinarian').length;
-  const ownerCount = users.filter((u) => u.role === 'owner').length;
+  const vetCount = users.filter((u) => u.role.toLowerCase() === 'veterinarian').length;
+  const serviceCenterCount = users.filter((u) => u.role.toLowerCase() === 'service_center').length;
+  const ownerCount = users.filter(
+    (u) => u.role.toLowerCase() === 'owner' || u.role.toLowerCase() === 'customer'
+  ).length;
   const deactivatedCount = users.filter((u) => u.isActive === false).length;
 
   // Filter users
@@ -162,10 +167,12 @@ export const AdminManagementScreen: React.FC = () => {
 
     if (!matchesSearch) return false;
 
+    const r = u.role.toLowerCase();
     if (activeTab === 'deactivated') return u.isActive === false;
-    if (activeTab === 'owner') return u.role === 'owner';
-    if (activeTab === 'veterinarian') return u.role === 'veterinarian';
-    if (activeTab === 'admin') return u.role === 'admin';
+    if (activeTab === 'owner') return r === 'owner' || r === 'customer';
+    if (activeTab === 'veterinarian') return r === 'veterinarian';
+    if (activeTab === 'service_center') return r === 'service_center';
+    if (activeTab === 'admin') return r === 'admin';
     return true;
   });
 
@@ -174,22 +181,34 @@ export const AdminManagementScreen: React.FC = () => {
     const isSelf = item._id === currentUser?._id;
     const isProcessing = updatingId === item._id;
 
+    const roleLower = item.role.toLowerCase();
     const roleVariant =
-      item.role === 'admin'
+      roleLower === 'admin'
         ? 'warning'
-        : item.role === 'veterinarian'
+        : roleLower === 'veterinarian'
         ? 'secondary'
+        : roleLower === 'service_center'
+        ? 'success'
         : 'primary';
+
+    const roleDisplayName =
+      roleLower === 'service_center'
+        ? 'SERVICE CENTER'
+        : roleLower === 'owner'
+        ? 'CUSTOMER'
+        : item.role.toUpperCase();
 
     return (
       <Card style={[styles.userCard, !isActive && styles.userCardDeactivated]}>
         <View style={styles.cardHeader}>
           <View style={styles.userInfoLeft}>
             <View style={[styles.avatarBox, !isActive && styles.avatarBoxDeactivated]}>
-              {item.role === 'admin' ? (
+              {roleLower === 'admin' ? (
                 <Shield size={20} color={colors.warning} />
-              ) : item.role === 'veterinarian' ? (
+              ) : roleLower === 'veterinarian' ? (
                 <Stethoscope size={20} color={colors.secondary} />
+              ) : roleLower === 'service_center' ? (
+                <Building2 size={20} color="#0D9488" />
               ) : (
                 <PawPrint size={20} color={colors.primary} />
               )}
@@ -207,9 +226,9 @@ export const AdminManagementScreen: React.FC = () => {
         </View>
 
         <View style={styles.badgeRow}>
-          <Badge label={item.role.toUpperCase()} variant={roleVariant} />
+          <Badge label={roleDisplayName} variant={roleVariant} />
           <Badge
-            label={isActive ? 'Active' : 'Deactivated'}
+            label={isActive ? 'ACTIVE' : 'INACTIVE'}
             variant={isActive ? 'success' : 'danger'}
           />
         </View>
@@ -286,21 +305,25 @@ export const AdminManagementScreen: React.FC = () => {
         <View style={styles.statsRow}>
           <View style={styles.statPill}>
             <Text style={styles.statNumber}>{totalCount}</Text>
-            <Text style={styles.statLabel}>Users</Text>
+            <Text style={styles.statLabel}>Total</Text>
           </View>
           <View style={styles.statPill}>
             <Text style={styles.statNumber}>{ownerCount}</Text>
-            <Text style={styles.statLabel}>Owners</Text>
+            <Text style={styles.statLabel}>Customers</Text>
           </View>
           <View style={styles.statPill}>
             <Text style={styles.statNumber}>{vetCount}</Text>
             <Text style={styles.statLabel}>Vets</Text>
           </View>
+          <View style={styles.statPill}>
+            <Text style={styles.statNumber}>{serviceCenterCount}</Text>
+            <Text style={styles.statLabel}>Centers</Text>
+          </View>
           <View style={[styles.statPill, deactivatedCount > 0 && styles.statPillAlert]}>
             <Text style={[styles.statNumber, deactivatedCount > 0 && styles.statNumberAlert]}>
               {deactivatedCount}
             </Text>
-            <Text style={styles.statLabel}>Deactivated</Text>
+            <Text style={styles.statLabel}>Inactive</Text>
           </View>
         </View>
 
@@ -319,7 +342,7 @@ export const AdminManagementScreen: React.FC = () => {
 
         {/* Filter Tabs */}
         <View style={styles.tabScroll}>
-          {(['all', 'owner', 'veterinarian', 'admin', 'deactivated'] as FilterTab[]).map((tab) => (
+          {(['all', 'owner', 'veterinarian', 'service_center', 'admin', 'deactivated'] as FilterTab[]).map((tab) => (
             <TouchableOpacity
               key={tab}
               style={[styles.filterChip, activeTab === tab && styles.filterChipActive]}
@@ -329,12 +352,14 @@ export const AdminManagementScreen: React.FC = () => {
                 {tab === 'all'
                   ? 'All'
                   : tab === 'owner'
-                  ? 'Owners'
+                  ? 'Customers'
                   : tab === 'veterinarian'
                   ? 'Vets'
+                  : tab === 'service_center'
+                  ? 'Service Centers'
                   : tab === 'admin'
                   ? 'Admins'
-                  : 'Deactivated'}
+                  : 'Inactive'}
               </Text>
             </TouchableOpacity>
           ))}

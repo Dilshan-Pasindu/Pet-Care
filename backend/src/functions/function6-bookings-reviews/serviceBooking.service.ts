@@ -35,10 +35,23 @@ export const getBookings = async (
   query: BookingQuery = {}
 ): Promise<IServiceBooking[]> => {
   const filter: Record<string, unknown> = {};
+  const normalizedRole = (userRole as string).toLowerCase();
 
-  if (userRole === 'owner') {
+  if (normalizedRole === 'owner' || normalizedRole === 'customer') {
     filter.userId = userId;
+  } else if (normalizedRole === 'service_center') {
+    const ServiceCenter = (await import('../function5-services/serviceCenter.model')).default;
+    const Service = (await import('../function5-services/service.model')).default;
+    const center = await ServiceCenter.findOne({ userId });
+    if (center) {
+      const myServices = await Service.find({ serviceCenterId: center._id }).select('_id');
+      const myServiceIds = myServices.map((s) => s._id);
+      filter.serviceId = { $in: myServiceIds };
+    } else {
+      filter.serviceId = { $in: [] };
+    }
   }
+
   if (query.status) {
     filter.status = query.status;
   }
@@ -55,7 +68,7 @@ export const getBookings = async (
 
   return ServiceBooking.find(filter)
     .populate('petId', 'name species breed image')
-    .populate('serviceId', 'name category price duration image')
+    .populate('serviceId', 'name category price duration image provider')
     .populate('userId', 'name email phone')
     .sort({ date: -1, createdAt: -1 });
 };
@@ -67,14 +80,19 @@ export const getBookingById = async (
 ): Promise<IServiceBooking> => {
   const booking = await ServiceBooking.findById(bookingId)
     .populate('petId', 'name species breed image')
-    .populate('serviceId', 'name category price duration provider image')
+    .populate('serviceId', 'name category price duration provider image serviceCenterId')
     .populate('userId', 'name email phone');
 
   if (!booking) {
     throw Object.assign(new Error('Booking not found.'), { statusCode: 404 });
   }
 
-  if (userRole === 'owner' && booking.userId._id.toString() !== userId && booking.userId.toString() !== userId) {
+  const normalizedRole = (userRole as string).toLowerCase();
+  if (
+    (normalizedRole === 'owner' || normalizedRole === 'customer') &&
+    booking.userId._id.toString() !== userId &&
+    booking.userId.toString() !== userId
+  ) {
     throw Object.assign(new Error('You do not have permission to view this booking.'), { statusCode: 403 });
   }
 
@@ -87,18 +105,30 @@ export const updateBookingStatus = async (
   userId: string,
   userRole: UserRole
 ): Promise<IServiceBooking> => {
-  const booking = await ServiceBooking.findById(bookingId);
+  const booking = await ServiceBooking.findById(bookingId).populate('serviceId');
   if (!booking) {
     throw Object.assign(new Error('Booking not found.'), { statusCode: 404 });
   }
 
-  // Owners can only cancel their own bookings
-  if (userRole === 'owner') {
+  const normalizedRole = (userRole as string).toLowerCase();
+
+  // Customers can only cancel their own bookings
+  if (normalizedRole === 'owner' || normalizedRole === 'customer') {
     if (booking.userId.toString() !== userId) {
       throw Object.assign(new Error('You do not have permission to modify this booking.'), { statusCode: 403 });
     }
     if (status !== 'cancelled') {
       throw Object.assign(new Error('Pet owners can only cancel bookings.'), { statusCode: 403 });
+    }
+  }
+
+  // Service Centers can manage bookings for their own services
+  if (normalizedRole === 'service_center') {
+    const ServiceCenter = (await import('../function5-services/serviceCenter.model')).default;
+    const center = await ServiceCenter.findOne({ userId });
+    const service = booking.serviceId as unknown as { serviceCenterId?: { toString(): string } };
+    if (!center || !service?.serviceCenterId || service.serviceCenterId.toString() !== center._id.toString()) {
+      throw Object.assign(new Error('You do not have permission to update bookings for this service.'), { statusCode: 403 });
     }
   }
 

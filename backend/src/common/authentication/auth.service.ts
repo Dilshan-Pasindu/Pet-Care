@@ -52,6 +52,23 @@ export const registerUser = async (userData: RegisterInput): Promise<AuthPayload
     isActive: true,
   });
 
+  const normalizedRole = (user.role as string).toLowerCase();
+  if (normalizedRole === 'service_center') {
+    try {
+      const ServiceCenter = (await import('../../functions/function5-services/serviceCenter.model')).default;
+      await ServiceCenter.create({
+        userId: user._id,
+        name: user.name,
+        phone: user.phone || '000-000-0000',
+        email: user.email,
+        address: 'Please update your address',
+        city: 'City',
+      });
+    } catch (e) {
+      console.error('Failed to create default ServiceCenter profile:', e);
+    }
+  }
+
   const token = generateToken(user._id.toString(), user.role);
   return { user: toUserResponse(user), token };
 };

@@ -47,8 +47,15 @@ export const VetProfileScreen: React.FC = () => {
   // Editable fields
   const [clinicName, setClinicName] = useState('');
   const [specialization, setSpecialization] = useState('');
+  const [qualification, setQualification] = useState('');
   const [consultationFee, setConsultationFee] = useState('');
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
+  const [typesOfCare, setTypesOfCare] = useState('');
   const [description, setDescription] = useState('');
 
   const loadProfile = async () => {
@@ -58,8 +65,15 @@ export const VetProfileScreen: React.FC = () => {
       if (data) {
         setClinicName(data.clinicName || '');
         setSpecialization(data.specialization || '');
+        setQualification(data.qualification || '');
         setConsultationFee(data.consultationFee ? String(data.consultationFee) : '0');
         setPhone(data.phone || user?.phone || '');
+        setEmail(data.email || user?.email || '');
+        setAddress(data.address || '');
+        setCity(data.city || '');
+        setLatitude(data.latitude != null ? String(data.latitude) : '');
+        setLongitude(data.longitude != null ? String(data.longitude) : '');
+        setTypesOfCare(data.typesOfCare || '');
         setDescription(data.description || '');
       }
     } catch (e) {
@@ -78,11 +92,21 @@ export const VetProfileScreen: React.FC = () => {
     try {
       setSaving(true);
       const feeNum = parseFloat(consultationFee) || 0;
+      const latNum = latitude.trim() ? parseFloat(latitude) : null;
+      const lngNum = longitude.trim() ? parseFloat(longitude) : null;
+
       await vetService.updateVeterinarian(vetProfile._id, {
         clinicName,
         specialization,
+        qualification,
         consultationFee: feeNum,
         phone,
+        email,
+        address,
+        city,
+        latitude: latNum,
+        longitude: lngNum,
+        typesOfCare,
         description,
       });
       Alert.alert('Success', 'Practitioner profile updated.');
@@ -155,8 +179,19 @@ export const VetProfileScreen: React.FC = () => {
 
         {editing ? (
           <View style={styles.editForm}>
-            <Input label="Specialization" value={specialization} onChangeText={setSpecialization} />
-            <Input label="Clinic / Hospital Name" value={clinicName} onChangeText={setClinicName} />
+            <Input label="Specialization *" value={specialization} onChangeText={setSpecialization} />
+            <Input label="Qualifications / Degree" placeholder="e.g. DVM, BVSc, MS" value={qualification} onChangeText={setQualification} />
+            <Input label="Clinic / Workplace Name" value={clinicName} onChangeText={setClinicName} />
+            <Input label="Clinic Street Address" value={address} onChangeText={setAddress} />
+            <Input label="City" value={city} onChangeText={setCity} />
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <View style={{ flex: 1 }}>
+                <Input label="Latitude (GPS)" placeholder="e.g. 6.9271" value={latitude} onChangeText={setLatitude} keyboardType="numeric" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Input label="Longitude (GPS)" placeholder="e.g. 79.8612" value={longitude} onChangeText={setLongitude} keyboardType="numeric" />
+              </View>
+            </View>
             <Input
               label="Consultation Fee ($)"
               value={consultationFee}
@@ -164,6 +199,15 @@ export const VetProfileScreen: React.FC = () => {
               keyboardType="numeric"
             />
             <Input label="Contact Phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+            <Input label="Professional Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+            <Input
+              label="Types of Care / Clinical Services Provided"
+              placeholder="e.g. Vaccinations, Dental Care, Internal Medicine, Surgery"
+              value={typesOfCare}
+              onChangeText={setTypesOfCare}
+              multiline
+              numberOfLines={2}
+            />
             <Input
               label="Bio / Clinical Philosophy"
               value={description}
@@ -188,13 +232,35 @@ export const VetProfileScreen: React.FC = () => {
               <Text style={styles.detailVal}>{vetProfile?.specialization || 'General Care'}</Text>
             </View>
 
+            {vetProfile?.qualification ? (
+              <View style={styles.detailRow}>
+                <View style={styles.detailLabelRow}>
+                  <Award size={15} color="#7C3AED" />
+                  <Text style={styles.detailLabel}>Qualifications</Text>
+                </View>
+                <Text style={styles.detailVal}>{vetProfile.qualification}</Text>
+              </View>
+            ) : null}
+
             <View style={styles.detailRow}>
               <View style={styles.detailLabelRow}>
                 <Building2 size={15} color="#059669" />
-                <Text style={styles.detailLabel}>Clinic</Text>
+                <Text style={styles.detailLabel}>Clinic / Workplace</Text>
               </View>
               <Text style={styles.detailVal}>{vetProfile?.clinicName || 'Not specified'}</Text>
             </View>
+
+            {vetProfile?.address || vetProfile?.city ? (
+              <View style={styles.detailRow}>
+                <View style={styles.detailLabelRow}>
+                  <Building2 size={15} color="#DC2626" />
+                  <Text style={styles.detailLabel}>Clinic Address</Text>
+                </View>
+                <Text style={styles.detailVal}>
+                  {[vetProfile?.address, vetProfile?.city].filter(Boolean).join(', ')}
+                </Text>
+              </View>
+            ) : null}
 
             <View style={styles.detailRow}>
               <View style={styles.detailLabelRow}>
@@ -221,6 +287,16 @@ export const VetProfileScreen: React.FC = () => {
               </View>
               <Text style={styles.detailVal}>{vetProfile?.phone || user?.phone || 'None'}</Text>
             </View>
+
+            {vetProfile?.typesOfCare ? (
+              <View style={styles.detailRow}>
+                <View style={styles.detailLabelRow}>
+                  <Stethoscope size={15} color="#0D9488" />
+                  <Text style={styles.detailLabel}>Care Provided</Text>
+                </View>
+                <Text style={styles.detailVal}>{vetProfile.typesOfCare}</Text>
+              </View>
+            ) : null}
           </View>
         )}
       </Card>

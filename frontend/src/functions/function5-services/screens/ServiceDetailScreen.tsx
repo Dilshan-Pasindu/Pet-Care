@@ -1,6 +1,8 @@
 /**
  * functions/function5-services/screens/ServiceDetailScreen.tsx
- * Owner: Function 5 — Pet Service Management
+ * Owner: Function 5 — Pet-Care Service Management
+ * Displays service details, provider Service Center info, phone, website,
+ * and Google Maps directions.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -11,17 +13,28 @@ import {
   StyleSheet,
   Image,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import {
+  Building2,
+  Phone,
+  Globe,
+  MapPin,
+  Clock,
+  Navigation,
+  Sparkles,
+} from 'lucide-react-native';
 import { RootStackParamList } from '../../../types/navigation';
-import { IService } from '../../../types/models';
+import { IService, IServiceCenter } from '../../../types/models';
 import serviceService from '../services/serviceService';
 import colors from '../../../constants/colors';
 import Card from '../../../components/common/Card';
 import Button from '../../../components/common/Button';
 import Loading from '../../../components/common/Loading';
 import Badge from '../../../components/common/Badge';
+import { openGoogleMapsDirections, makePhoneCall, openWebsite } from '../../../utils/linking';
 
 type RouteProps = RouteProp<RootStackParamList, 'ServiceDetail'>;
 type NavProp = StackNavigationProp<RootStackParamList>;
@@ -51,6 +64,27 @@ export const ServiceDetailScreen: React.FC = () => {
 
   if (loading) return <Loading fullScreen message="Loading service details..." />;
   if (!service) return null;
+
+  const center =
+    typeof service.serviceCenterId === 'object' && service.serviceCenterId !== null
+      ? (service.serviceCenterId as IServiceCenter)
+      : null;
+
+  const providerName = center?.name || service.provider || 'Pet-Care Service Center';
+  const providerPhone = center?.phone;
+  const providerWebsite = center?.website;
+  const providerAddress = center?.address
+    ? `${center.address}${center.city ? `, ${center.city}` : ''}`
+    : null;
+
+  const handleDirections = () => {
+    openGoogleMapsDirections({
+      latitude: center?.latitude,
+      longitude: center?.longitude,
+      address: providerAddress,
+      name: providerName,
+    });
+  };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -83,16 +117,67 @@ export const ServiceDetailScreen: React.FC = () => {
             {service.availability ? '● Open' : '● Closed'}
           </Text>
         </View>
-        <View style={styles.divider} />
-        <View style={styles.infoItem}>
-          <Text style={styles.infoLabel}>Provider</Text>
-          <Text style={styles.infoVal}>{service.provider || 'PetCare Team'}</Text>
+      </Card>
+
+      {/* Service Center Provider Information Card */}
+      <Card style={styles.providerCard}>
+        <View style={styles.providerHeader}>
+          <Building2 size={20} color={colors.primary} />
+          <View style={{ flex: 1, marginLeft: 8 }}>
+            <Text style={styles.providerTitle}>Provided by</Text>
+            <Text style={styles.providerName}>{providerName}</Text>
+          </View>
+          <Badge label="Service Center" variant="primary" />
         </View>
+
+        <View style={styles.contactList}>
+          {providerPhone ? (
+            <TouchableOpacity style={styles.contactRow} onPress={() => makePhoneCall(providerPhone)}>
+              <Phone size={16} color="#059669" />
+              <Text style={[styles.contactText, { color: '#059669', fontWeight: '700' }]}>
+                {providerPhone}
+              </Text>
+              <Text style={styles.tapAction}>Call Now →</Text>
+            </TouchableOpacity>
+          ) : null}
+
+          {providerWebsite ? (
+            <TouchableOpacity style={styles.contactRow} onPress={() => openWebsite(providerWebsite)}>
+              <Globe size={16} color="#2563EB" />
+              <Text style={[styles.contactText, { color: '#2563EB' }]} numberOfLines={1}>
+                {providerWebsite}
+              </Text>
+              <Text style={styles.tapAction}>Visit Website →</Text>
+            </TouchableOpacity>
+          ) : null}
+
+          {providerAddress ? (
+            <View style={styles.addressBlock}>
+              <View style={styles.contactRow}>
+                <MapPin size={16} color="#DC2626" />
+                <Text style={styles.contactText}>{providerAddress}</Text>
+              </View>
+            </View>
+          ) : null}
+
+          {center?.openingHours ? (
+            <View style={styles.contactRow}>
+              <Clock size={16} color="#D97706" />
+              <Text style={styles.contactText}>{center.openingHours}</Text>
+            </View>
+          ) : null}
+        </View>
+
+        {/* Google Maps Directions Action */}
+        <TouchableOpacity style={styles.directionsBtn} onPress={handleDirections}>
+          <Navigation size={18} color="#FFFFFF" />
+          <Text style={styles.directionsBtnText}>Get Directions / View on Map</Text>
+        </TouchableOpacity>
       </Card>
 
       {service.description ? (
         <Card style={styles.sectionCard}>
-          <Text style={styles.sectionHeading}>Description</Text>
+          <Text style={styles.sectionHeading}>Service Description</Text>
           <Text style={styles.body}>{service.description}</Text>
         </Card>
       ) : null}
@@ -139,6 +224,26 @@ const styles = StyleSheet.create({
   infoLabel: { fontSize: 12, color: colors.textSecondary, marginBottom: 4 },
   infoVal: { fontSize: 14, fontWeight: '700', color: colors.text },
   divider: { width: 1, height: '70%', backgroundColor: colors.border },
+  providerCard: { marginHorizontal: 16, marginTop: 12, padding: 16 },
+  providerHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  providerTitle: { fontSize: 12, color: colors.textSecondary },
+  providerName: { fontSize: 16, fontWeight: '800', color: colors.text, marginTop: 1 },
+  contactList: { gap: 10, paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.borderLight },
+  contactRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  contactText: { fontSize: 13, color: colors.text, flex: 1 },
+  tapAction: { fontSize: 12, fontWeight: '700', color: colors.primary },
+  addressBlock: { marginTop: 2 },
+  directionsBtn: {
+    backgroundColor: colors.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginTop: 14,
+  },
+  directionsBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
   sectionCard: { marginHorizontal: 16, marginTop: 12, padding: 16 },
   sectionHeading: { fontSize: 15, fontWeight: '700', color: colors.text, marginBottom: 8 },
   body: { fontSize: 14, color: colors.textSecondary, lineHeight: 22 },

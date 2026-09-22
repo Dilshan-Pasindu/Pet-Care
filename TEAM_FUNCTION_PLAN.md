@@ -2,24 +2,42 @@
 
 This document defines the functional development boundaries, technical deliverables, and viva defense topics for the university group project. Each section maps directly to a discrete area of responsibility in the codebase.
 
+## Function Matrix & Responsibilities
+
+| Function | Function Name | Main Responsibility | Main Role |
+| :--- | :--- | :--- | :--- |
+| **Function 1** | Pet Management | Add, edit, delete, view pets + optional photo | **Customer** |
+| **Function 2** | Veterinarian Management | Vet profiles, professional details, location, availability | **Veterinarian** |
+| **Function 3** | Appointment Management | Book/manage veterinary appointments | **Customer + Veterinarian** |
+| **Function 4** | Medical Record Management | Pet medical history, diagnosis, treatment, records | **Veterinarian + Customer** |
+| **Function 5** | Pet-Care Service Management | Service-center profiles + create/manage pet-care services | **Service Center** |
+| **Function 6** | Service Bookings & Reviews | Book services, manage bookings, reviews/ratings | **Customer + Service Center** |
+
 ---
 
 ## Common Group Function — Authentication & User Management
 
 ### Objective
-Provide secure authentication, role-based access control (RBAC), and user profile management shared by all team functions.
+Provide secure authentication, role-based access control (RBAC), and user profile management across the four dedicated system portals:
+1. **Customer Portal** (Pet Owners)
+2. **Veterinarian Portal** (Licensed Practitioners)
+3. **Service Center Portal** (Pet-Care Businesses: Grooming, Daycare, Spa, Boarding, etc.)
+4. **Administrator Portal** (System Administration & User Management)
 
 ### Architecture
-- **Backend Model:** `User` (`_id`, `name`, `email`, `password`, `phone`, `role`, `profileImage`)
-- **Roles:** `owner`, `veterinarian`, `admin`
+- **Backend Model:** `User` (`_id`, `name`, `email`, `password`, `phone`, `role`, `isActive`, `profileImage`)
+- **Roles:** `Customer` (`owner`), `Veterinarian` (`veterinarian`), `Pet-Care Service Center` (`service_center`), `Administrator` (`admin`)
+- **Account Status:** `ACTIVE`, `INACTIVE` (`isActive: boolean`)
 - **Backend Directory:** `backend/src/common/authentication/`
 - **Frontend Directory:** `frontend/src/context/AuthContext.tsx`, `frontend/src/screens/auth/`
 - **API Endpoints:**
-  - `POST /api/auth/register` — Register a new account
-  - `POST /api/auth/login` — Sign in and receive JWT
+  - `POST /api/auth/register` — Register account (Customer, Veterinarian, Pet-Care Service Center)
+  - `POST /api/auth/login` — Sign in and receive JWT (rejects deactivated accounts with HTTP 403)
   - `GET /api/auth/me` — Retrieve authenticated user profile
-  - `PUT /api/auth/profile` — Update user details / profile image
-- **Viva Topics:** Password hashing algorithms (bcrypt), JWT payload signing, stateless authentication, Express middleware chaining, and AsyncStorage security.
+  - `PUT /api/auth/me` — Update user details / profile image
+  - `GET /api/auth/users` — Admin directory of registered accounts
+  - `PATCH /api/auth/users/:id/status` — Admin activate/deactivate account
+  - `PATCH /api/auth/users/:id/role` — Admin reassign user role
 
 ---
 
@@ -133,14 +151,15 @@ Maintain an immutable health timeline for pets including clinical diagnosis, tre
 
 ---
 
-## Function 5 — Pet Service Management
+## Function 5 — Pet-Care Service Management
 
 ### Objective
-Maintain an interactive catalog of pet care services (grooming, bathing, nail trimming, boarding, training, walking).
+Provide comprehensive pet-care service management for Pet-Care Service Centers (grooming, bathing, nail trimming, boarding, daycare, walking, spa). Strictly enforce that only authenticated Service Centers can create and manage their own service offerings.
 
 ### Technical Deliverables
-- **Main Entity:** `Service` (`name`, `description`, `category`, `price`, `duration`, `provider`, `availability`, `image`)
+- **Main Entities:** `ServiceCenter`, `Service` (`serviceCenterId`, `name`, `description`, `category`, `price`, `duration`, `provider`, `availability`, `image`)
 - **Backend Files:**
+  - `backend/src/functions/function5-services/serviceCenter.model.ts`
   - `backend/src/functions/function5-services/service.model.ts`
   - `backend/src/functions/function5-services/service.service.ts`
   - `backend/src/functions/function5-services/service.controller.ts`
@@ -150,13 +169,22 @@ Maintain an interactive catalog of pet care services (grooming, bathing, nail tr
   - `frontend/src/functions/function5-services/services/serviceService.ts`
   - `frontend/src/functions/function5-services/screens/ServiceListScreen.tsx`
   - `frontend/src/functions/function5-services/screens/ServiceDetailScreen.tsx`
+  - `frontend/src/screens/serviceCenter/ServiceCenterDashboardScreen.tsx`
+  - `frontend/src/screens/serviceCenter/ServiceCenterServicesScreen.tsx`
+  - `frontend/src/screens/serviceCenter/ServiceCenterAddEditServiceScreen.tsx`
+  - `frontend/src/screens/serviceCenter/ServiceCenterBookingsScreen.tsx`
+  - `frontend/src/screens/serviceCenter/ServiceCenterProfileScreen.tsx`
+  - `frontend/src/navigation/ServiceCenterTabNavigator.tsx`
 - **APIs:**
-  - `GET /api/services` — Public catalog with category filter & text search
-  - `GET /api/services/:id` — Service details & pricing
-  - `POST /api/services` — Admin service creation with picture
-  - `PUT /api/services/:id` — Update pricing or availability
-  - `DELETE /api/services/:id` — Archive/delete service
-- **Viva Topics:** Category enumeration typing in TypeScript, filtering and pagination optimization, and administrative authorization safeguards.
+  - `GET /api/services` — Public catalog with category filter, search, and populated Service Center details
+  - `GET /api/services/:id` — Service details with Service Center contact, phone, website, and GPS coordinates
+  - `POST /api/services` — Create service (**Service Center role only**)
+  - `PUT /api/services/:id` — Update own service (**Service Center role only**)
+  - `DELETE /api/services/:id` — Remove own service (**Service Center role only**)
+  - `GET /api/services/center/me` — Retrieve authenticated Service Center profile
+  - `PUT /api/services/center/me` — Update business profile & GPS coordinates
+  - `GET /api/services/center/my-services` — Retrieve services belonging to the authenticated Service Center
+- **Viva Topics:** Multi-tenant service ownership enforcement via `serviceCenterId`, role authorization guards, phone & URL input validation, and Google Maps deep-link integration.
 
 ---
 

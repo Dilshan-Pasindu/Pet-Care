@@ -13,8 +13,12 @@ import colors from '../constants/colors';
 import AuthNavigator from './AuthNavigator';
 import OwnerTabNavigator from './OwnerTabNavigator';
 import VeterinarianTabNavigator from './VeterinarianTabNavigator';
+import ServiceCenterTabNavigator from './ServiceCenterTabNavigator';
 import AdminTabNavigator from './AdminTabNavigator';
 import Loading from '../components/common/Loading';
+
+// Service Center Screens
+import ServiceCenterAddEditServiceScreen from '../screens/serviceCenter/ServiceCenterAddEditServiceScreen';
 
 // Function 1 Screens
 import PetDetailScreen from '../functions/function1-pets/screens/PetDetailScreen';
@@ -54,10 +58,13 @@ export const RootNavigator: React.FC = () => {
   }
 
   // Strictly select dedicated role portal
+  const normalizedRole = user?.role ? (user.role as string).toLowerCase() : '';
   const RolePortalComponent =
-    user?.role === 'veterinarian'
+    normalizedRole === 'veterinarian'
       ? VeterinarianTabNavigator
-      : user?.role === 'admin'
+      : normalizedRole === 'service_center'
+      ? ServiceCenterTabNavigator
+      : normalizedRole === 'admin'
       ? AdminTabNavigator
       : OwnerTabNavigator;
 
@@ -173,6 +180,11 @@ export const RootNavigator: React.FC = () => {
               name="AdminManagement"
               component={AdminManagementScreen}
               options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="ServiceCenterAddEditService"
+              component={ServiceCenterAddEditServiceScreen}
+              options={{ title: 'Manage Pet Service' }}
             />
           </>
         )}
