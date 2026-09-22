@@ -1,7 +1,11 @@
+/// <reference types="jest" />
+
 /**
  * tests/appointmentValidation.test.ts
  * Tests for appointment validation logic (time and date formats)
  */
+
+export {};
 
 describe('Appointment Time Validation Pattern', () => {
   const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5]\d(\s*(AM|PM|am|pm))?$/i;
