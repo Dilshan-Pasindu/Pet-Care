@@ -52,12 +52,9 @@ export const validateRegister: ValidationMiddleware[] = [
     .notEmpty().withMessage('Phone number is required')
     .trim()
     .custom((val) => {
-      const cleaned = String(val).replace(/[\s\-()]/g, '');
-      if (cleaned.length < 10) {
-        throw new Error('Phone number must be at least 10 characters');
-      }
-      if (!/^[+]?[0-9]{9,15}$/.test(cleaned)) {
-        throw new Error('Please provide a valid phone number');
+      const digitsOnly = String(val).replace(/\D/g, '');
+      if (digitsOnly.length !== 10 || String(val).trim().length !== 10) {
+        throw new Error('Phone number must be exactly 10 numbers');
       }
       return true;
     }),
@@ -71,6 +68,20 @@ export const validateRegister: ValidationMiddleware[] = [
       }
       return true;
     }),
+
+  body('regNo')
+    .optional()
+    .trim(),
+
+  body().custom((reqBody) => {
+    const role = String(reqBody.role || '').toLowerCase();
+    if (role === 'veterinarian') {
+      if (!reqBody.regNo || !String(reqBody.regNo).trim()) {
+        throw new Error('Registration number (Reg. No) is required for veterinarians');
+      }
+    }
+    return true;
+  }),
 
   handleValidationErrors,
 ];
@@ -99,12 +110,9 @@ export const validateProfileUpdate: ValidationMiddleware[] = [
     .trim()
     .custom((val) => {
       if (!val) return true;
-      const cleaned = String(val).replace(/[\s\-()]/g, '');
-      if (cleaned.length < 10) {
-        throw new Error('Phone number must be at least 10 characters');
-      }
-      if (!/^[+]?[0-9]{9,15}$/.test(cleaned)) {
-        throw new Error('Please provide a valid phone number');
+      const digitsOnly = String(val).replace(/\D/g, '');
+      if (digitsOnly.length !== 10 || String(val).trim().length !== 10) {
+        throw new Error('Phone number must be exactly 10 numbers');
       }
       return true;
     }),
