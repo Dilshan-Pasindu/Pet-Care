@@ -70,6 +70,7 @@ export const RegisterScreen: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState<UserRole>('owner');
   const [loading, setLoading] = useState(false);
@@ -77,10 +78,40 @@ export const RegisterScreen: React.FC = () => {
 
   const validate = () => {
     const errs: Record<string, string> = {};
-    if (!name.trim()) errs.name = role === 'service_center' ? 'Business name is required' : 'Full name is required';
-    if (!email.trim()) errs.email = 'Email address is required';
-    else if (!/\S+@\S+\.\S+/.test(email)) errs.email = 'Enter a valid email';
-    if (!password || password.length < 6) errs.password = 'Password must be at least 6 characters';
+    if (!name.trim()) {
+      errs.name = role === 'service_center' ? 'Business name is required' : 'Full name is required';
+    } else if (name.trim().length < 2) {
+      errs.name = 'Name must be at least 2 characters';
+    }
+
+    if (!email.trim()) {
+      errs.email = 'Email address is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      errs.email = 'Enter a valid email address';
+    }
+
+    if (!password) {
+      errs.password = 'Password is required';
+    } else if (password.length < 6) {
+      errs.password = 'Password must be at least 6 characters';
+    }
+
+    if (!confirmPassword) {
+      errs.confirmPassword = 'Confirm password is required';
+    } else if (password !== confirmPassword) {
+      errs.confirmPassword = 'Passwords do not match';
+    }
+
+    const trimmedPhone = phone.trim();
+    const digitsOnly = trimmedPhone.replace(/\D/g, '');
+    if (!trimmedPhone) {
+      errs.phone = 'Phone number is required';
+    } else if (trimmedPhone.length < 10) {
+      errs.phone = 'Phone number must be at least 10 characters';
+    } else if (digitsOnly.length < 9 || !/^[+]?[0-9\s\-()]{10,20}$/.test(trimmedPhone)) {
+      errs.phone = 'Please enter a valid phone number (e.g. +94 7X XXX XXXX or 07XXXXXXXX)';
+    }
+
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -89,7 +120,7 @@ export const RegisterScreen: React.FC = () => {
     if (!validate()) return;
     try {
       setLoading(true);
-      await register({ name: name.trim(), email: email.trim(), password, phone: phone.trim() || undefined, role });
+      await register({ name: name.trim(), email: email.trim(), password, phone: phone.trim(), role });
     } catch (err: any) {
       Alert.alert('Registration Failed', err.message || 'Could not complete registration.');
     } finally {
@@ -172,7 +203,10 @@ export const RegisterScreen: React.FC = () => {
             label={role === 'service_center' ? 'Business Name' : 'Full Name'}
             placeholder={role === 'service_center' ? 'Paws Spa & Grooming' : 'Jane Doe'}
             value={name}
-            onChangeText={setName}
+            onChangeText={(text) => {
+              setName(text);
+              if (errors.name) setErrors((prev) => ({ ...prev, name: '' }));
+            }}
             error={errors.name}
             required
             leftIcon={<User size={17} color={colors.textMuted} strokeWidth={2} />}
@@ -183,7 +217,10 @@ export const RegisterScreen: React.FC = () => {
             keyboardType="email-address"
             autoCapitalize="none"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => {
+              setEmail(text);
+              if (errors.email) setErrors((prev) => ({ ...prev, email: '' }));
+            }}
             error={errors.email}
             required
             leftIcon={<Mail size={17} color={colors.textMuted} strokeWidth={2} />}
@@ -193,17 +230,42 @@ export const RegisterScreen: React.FC = () => {
             placeholder="Minimum 6 characters"
             secureTextEntry
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => {
+              setPassword(text);
+              if (errors.password) setErrors((prev) => ({ ...prev, password: '' }));
+              if (confirmPassword && errors.confirmPassword && text === confirmPassword) {
+                setErrors((prev) => ({ ...prev, confirmPassword: '' }));
+              }
+            }}
             error={errors.password}
             required
             leftIcon={<Lock size={17} color={colors.textMuted} strokeWidth={2} />}
           />
           <Input
+            label="Confirm Password"
+            placeholder="Re-enter your password"
+            secureTextEntry
+            value={confirmPassword}
+            onChangeText={(text) => {
+              setConfirmPassword(text);
+              if (errors.confirmPassword) setErrors((prev) => ({ ...prev, confirmPassword: '' }));
+            }}
+            error={errors.confirmPassword}
+            required
+            leftIcon={<Lock size={17} color={colors.textMuted} strokeWidth={2} />}
+          />
+          <Input
             label="Phone Number"
-            placeholder="+1 (555) 000-0000"
+            placeholder="+94 00 00 00 000"
             keyboardType="phone-pad"
             value={phone}
-            onChangeText={setPhone}
+            onChangeText={(text) => {
+              setPhone(text);
+              if (errors.phone) setErrors((prev) => ({ ...prev, phone: '' }));
+            }}
+            error={errors.phone}
+            required
+            hint="Sri Lankan format: e.g. 07XXXXXXXX or +94 7X XXX XXXX"
             leftIcon={<Phone size={17} color={colors.textMuted} strokeWidth={2} />}
           />
 

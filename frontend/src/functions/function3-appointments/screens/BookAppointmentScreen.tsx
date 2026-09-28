@@ -41,11 +41,19 @@ export const BookAppointmentScreen: React.FC = () => {
   const initialVetId = route.params?.vetId;
   const initialPetId = route.params?.petId;
 
+  const getTodayLocalDateStr = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const [pets, setPets] = useState<IPet[]>([]);
   const [vets, setVets] = useState<IVeterinarian[]>([]);
   const [selectedPetId, setSelectedPetId] = useState<string>(initialPetId || '');
   const [selectedVetId, setSelectedVetId] = useState<string>(initialVetId || '');
-  const [date, setDate] = useState<string>(new Date().toISOString().substring(0, 10));
+  const [date, setDate] = useState<string>(getTodayLocalDateStr());
   const [time, setTime] = useState<string>('10:00 AM');
   const [reason, setReason] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
@@ -98,6 +106,11 @@ export const BookAppointmentScreen: React.FC = () => {
     const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!isoDateRegex.test(date.trim()) || isNaN(Date.parse(date.trim()))) {
       Alert.alert('Invalid Date', 'Please enter a valid date in YYYY-MM-DD format (e.g. 2026-10-15).');
+      return;
+    }
+    const todayStr = getTodayLocalDateStr();
+    if (date.trim() < todayStr) {
+      Alert.alert('Invalid Date', 'Cannot book an appointment for a previous date. Please select today or a future date.');
       return;
     }
     if (!time.trim()) {

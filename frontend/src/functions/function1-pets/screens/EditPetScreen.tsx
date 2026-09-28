@@ -99,6 +99,28 @@ export const EditPetScreen: React.FC = () => {
       return;
     }
 
+    if (dateOfBirth.trim()) {
+      const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!isoDateRegex.test(dateOfBirth.trim()) || isNaN(Date.parse(dateOfBirth.trim()))) {
+        Alert.alert('Validation Error', 'Date of birth must be in YYYY-MM-DD format (e.g. 2022-05-15)');
+        return;
+      }
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      if (dateOfBirth.trim() > todayStr) {
+        Alert.alert('Validation Error', 'Date of birth cannot be in the future');
+        return;
+      }
+    }
+
+    if (weight.trim()) {
+      const num = Number(weight.trim());
+      if (isNaN(num) || num <= 0) {
+        Alert.alert('Validation Error', 'Weight must be a positive number');
+        return;
+      }
+    }
+
     try {
       setSubmitting(true);
       const isNewLocalFile = imageUri && (imageUri.startsWith('file://') || !imageUri.startsWith('http') && !imageUri.startsWith('/uploads'));

@@ -21,7 +21,21 @@ const handleValidationErrors = (req: Request, res: Response, next: NextFunction)
 export const validateCreateAppointment: ValidationMiddleware[] = [
   body('petId').notEmpty().withMessage('Pet ID is required').isMongoId().withMessage('Invalid Pet ID'),
   body('veterinarianId').notEmpty().withMessage('Veterinarian ID is required').isMongoId().withMessage('Invalid Veterinarian ID'),
-  body('date').notEmpty().withMessage('Date is required').isISO8601().withMessage('Date must be a valid date'),
+  body('date')
+    .notEmpty().withMessage('Date is required')
+    .isISO8601().withMessage('Date must be a valid date')
+    .custom((val) => {
+      const parts = String(val).split('T')[0].split('-');
+      if (parts.length === 3) {
+        const appointmentDate = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (appointmentDate < today) {
+          throw new Error('Appointment date cannot be in the past');
+        }
+      }
+      return true;
+    }),
   body('time')
     .notEmpty()
     .withMessage('Time is required')
@@ -34,7 +48,22 @@ export const validateCreateAppointment: ValidationMiddleware[] = [
 
 export const validateUpdateAppointment: ValidationMiddleware[] = [
   body('status').optional().isIn(['pending', 'confirmed', 'completed', 'cancelled']).withMessage('Invalid status'),
-  body('date').optional().isISO8601().withMessage('Date must be a valid date'),
+  body('date')
+    .optional()
+    .isISO8601().withMessage('Date must be a valid date')
+    .custom((val) => {
+      if (!val) return true;
+      const parts = String(val).split('T')[0].split('-');
+      if (parts.length === 3) {
+        const appointmentDate = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (appointmentDate < today) {
+          throw new Error('Appointment date cannot be in the past');
+        }
+      }
+      return true;
+    }),
   body('time')
     .optional()
     .matches(/^([0-1]?[0-9]|2[0-3]):[0-5]\d(\s*(AM|PM|am|pm))?$/i)

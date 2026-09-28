@@ -67,11 +67,23 @@ export const AddPetScreen: React.FC = () => {
     const errs: Record<string, string> = {};
     if (!name.trim()) errs.name = 'Pet name is required';
     if (!species.trim()) errs.species = 'Species is required (e.g. Dog, Cat)';
-    if (dateOfBirth && isNaN(Date.parse(dateOfBirth))) {
-      errs.dateOfBirth = 'Use YYYY-MM-DD format';
+    if (dateOfBirth.trim()) {
+      const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!isoDateRegex.test(dateOfBirth.trim()) || isNaN(Date.parse(dateOfBirth.trim()))) {
+        errs.dateOfBirth = 'Use YYYY-MM-DD format (e.g. 2022-05-15)';
+      } else {
+        const now = new Date();
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        if (dateOfBirth.trim() > todayStr) {
+          errs.dateOfBirth = 'Date of birth cannot be in the future';
+        }
+      }
     }
-    if (weight && isNaN(Number(weight))) {
-      errs.weight = 'Weight must be a valid number';
+    if (weight.trim()) {
+      const num = Number(weight.trim());
+      if (isNaN(num) || num <= 0) {
+        errs.weight = 'Weight must be a positive number';
+      }
     }
     setErrors(errs);
     return Object.keys(errs).length === 0;

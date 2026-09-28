@@ -35,3 +35,63 @@ describe('Appointment Time Validation Pattern', () => {
     expect(timeRegex.test('')).toBe(false);
   });
 });
+
+describe('Booking Date Restriction Logic', () => {
+  const isPastDate = (val: string): boolean => {
+    const parts = val.split('T')[0].split('-');
+    if (parts.length !== 3) return false;
+    const bookingDate = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return bookingDate < today;
+  };
+
+  it('should reject previous/past dates', () => {
+    expect(isPastDate('2020-01-01')).toBe(true);
+    expect(isPastDate('2023-12-31')).toBe(true);
+    expect(isPastDate('2025-05-10')).toBe(true);
+  });
+
+  it('should accept today and future dates', () => {
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    expect(isPastDate(todayStr)).toBe(false);
+
+    const future = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const futureStr = `${future.getFullYear()}-${String(future.getMonth() + 1).padStart(2, '0')}-${String(future.getDate()).padStart(2, '0')}`;
+    expect(isPastDate(futureStr)).toBe(false);
+  });
+});
+
+describe('Phone Number Validation & Requirements', () => {
+  const validatePhone = (phone: string): { isValid: boolean; error?: string } => {
+    const trimmed = phone.trim();
+    const digitsOnly = trimmed.replace(/\D/g, '');
+    if (!trimmed) {
+      return { isValid: false, error: 'Phone number is required' };
+    }
+    if (trimmed.length < 10) {
+      return { isValid: false, error: 'Phone number must be at least 10 characters' };
+    }
+    if (digitsOnly.length < 9 || !/^[+]?[0-9\s\-()]{10,20}$/.test(trimmed)) {
+      return { isValid: false, error: 'Please enter a valid phone number' };
+    }
+    return { isValid: true };
+  };
+
+  it('should reject numbers shorter than 10 characters', () => {
+    expect(validatePhone('12345').isValid).toBe(false);
+    expect(validatePhone('12345').error).toBe('Phone number must be at least 10 characters');
+    expect(validatePhone('0712345').isValid).toBe(false);
+    expect(validatePhone('0712345').error).toBe('Phone number must be at least 10 characters');
+  });
+
+  it('should accept valid Sri Lankan local and international formats', () => {
+    expect(validatePhone('0712345678').isValid).toBe(true);
+    expect(validatePhone('0771234567').isValid).toBe(true);
+    expect(validatePhone('0112345678').isValid).toBe(true);
+    expect(validatePhone('+94712345678').isValid).toBe(true);
+    expect(validatePhone('+94 77 123 4567').isValid).toBe(true);
+    expect(validatePhone('+94 71 23 45 678').isValid).toBe(true);
+  });
+});
