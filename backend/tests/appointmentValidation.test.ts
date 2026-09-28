@@ -63,35 +63,30 @@ describe('Booking Date Restriction Logic', () => {
   });
 });
 
-describe('Phone Number Validation & Requirements', () => {
+describe('Phone Number Validation & Requirements (Strict 10 Digits)', () => {
   const validatePhone = (phone: string): { isValid: boolean; error?: string } => {
     const trimmed = phone.trim();
-    const digitsOnly = trimmed.replace(/\D/g, '');
     if (!trimmed) {
       return { isValid: false, error: 'Phone number is required' };
     }
-    if (trimmed.length < 10) {
-      return { isValid: false, error: 'Phone number must be at least 10 characters' };
-    }
-    if (digitsOnly.length < 9 || !/^[+]?[0-9\s\-()]{10,20}$/.test(trimmed)) {
-      return { isValid: false, error: 'Please enter a valid phone number' };
+    if (!/^\d{10}$/.test(trimmed)) {
+      return { isValid: false, error: 'Phone number must be exactly 10 numbers' };
     }
     return { isValid: true };
   };
 
-  it('should reject numbers shorter than 10 characters', () => {
+  it('should reject numbers that are not exactly 10 digits', () => {
     expect(validatePhone('12345').isValid).toBe(false);
-    expect(validatePhone('12345').error).toBe('Phone number must be at least 10 characters');
-    expect(validatePhone('0712345').isValid).toBe(false);
-    expect(validatePhone('0712345').error).toBe('Phone number must be at least 10 characters');
+    expect(validatePhone('12345').error).toBe('Phone number must be exactly 10 numbers');
+    expect(validatePhone('071234567').isValid).toBe(false);
+    expect(validatePhone('07123456789').isValid).toBe(false);
+    expect(validatePhone('077010199a').isValid).toBe(false);
+    expect(validatePhone('+94770101999').isValid).toBe(false);
   });
 
-  it('should accept valid Sri Lankan local and international formats', () => {
+  it('should accept valid 10-digit phone numbers', () => {
+    expect(validatePhone('0770101999').isValid).toBe(true);
     expect(validatePhone('0712345678').isValid).toBe(true);
-    expect(validatePhone('0771234567').isValid).toBe(true);
     expect(validatePhone('0112345678').isValid).toBe(true);
-    expect(validatePhone('+94712345678').isValid).toBe(true);
-    expect(validatePhone('+94 77 123 4567').isValid).toBe(true);
-    expect(validatePhone('+94 71 23 45 678').isValid).toBe(true);
   });
 });
