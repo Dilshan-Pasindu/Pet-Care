@@ -59,6 +59,9 @@ export const RootNavigator: React.FC = () => {
 
   // Strictly select dedicated role portal
   const normalizedRole = user?.role ? (user.role as string).toLowerCase() : '';
+  const isDoctorUnverified = normalizedRole === 'veterinarian' && user?.isVerified === false;
+  const isAllowedAuth = isAuthenticated && !isDoctorUnverified;
+
   const RolePortalComponent =
     normalizedRole === 'veterinarian'
       ? VeterinarianTabNavigator
@@ -89,7 +92,7 @@ export const RootNavigator: React.FC = () => {
           },
         }}
       >
-        {!isAuthenticated ? (
+        {!isAllowedAuth ? (
           <Stack.Screen
             name="Auth"
             component={AuthNavigator}
