@@ -26,7 +26,7 @@ import Button from '../../components/common/Button';
 import { isSmallDevice } from '../../utils/responsive';
 import {
   PawPrint, Heart, Mail, Lock, User, Phone, ChevronLeft,
-  Stethoscope, Building2,
+  Stethoscope, Building2, ShieldCheck,
 } from 'lucide-react-native';
 
 type NavProp = StackNavigationProp<AuthStackParamList, 'Register'>;
@@ -72,6 +72,7 @@ export const RegisterScreen: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [phone, setPhone] = useState('');
+  const [regNo, setRegNo] = useState('');
   const [role, setRole] = useState<UserRole>('owner');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -103,13 +104,14 @@ export const RegisterScreen: React.FC = () => {
     }
 
     const trimmedPhone = phone.trim();
-    const digitsOnly = trimmedPhone.replace(/\D/g, '');
     if (!trimmedPhone) {
       errs.phone = 'Phone number is required';
-    } else if (trimmedPhone.length < 10) {
-      errs.phone = 'Phone number must be at least 10 characters';
-    } else if (digitsOnly.length < 9 || !/^[+]?[0-9\s\-()]{10,20}$/.test(trimmedPhone)) {
-      errs.phone = 'Please enter a valid phone number (e.g. +94 7X XXX XXXX or 07XXXXXXXX)';
+    } else if (trimmedPhone.length !== 10 || !/^\d{10}$/.test(trimmedPhone)) {
+      errs.phone = 'Phone number must be exactly 10 numbers';
+    }
+
+    if (role === 'veterinarian' && !regNo.trim()) {
+      errs.regNo = 'Registration number is required (e.g. No: XXXX)';
     }
 
     setErrors(errs);
@@ -120,7 +122,27 @@ export const RegisterScreen: React.FC = () => {
     if (!validate()) return;
     try {
       setLoading(true);
-      await register({ name: name.trim(), email: email.trim(), password, phone: phone.trim(), role });
+      await register({
+        name: name.trim(),
+        email: email.trim(),
+        password,
+        phone: phone.trim(),
+        role,
+        regNo: role === 'veterinarian' ? regNo.trim() : undefined,
+      });
+
+      if (role === 'veterinarian') {
+        Alert.alert(
+          'Registration Submitted',
+          'Your doctor registration has been submitted and is pending verification by the admin. You will be able to log in once verified.\n\nContact Admin:\nadmin@gmail.com, no-0770101999',
+          [
+            {
+              text: 'Go to Sign In',
+              onPress: () => navigation.navigate('Login'),
+            },
+          ]
+        );
+      }
     } catch (err: any) {
       Alert.alert('Registration Failed', err.message || 'Could not complete registration.');
     } finally {
@@ -254,22 +276,55 @@ export const RegisterScreen: React.FC = () => {
             required
             leftIcon={<Lock size={17} color={colors.textMuted} strokeWidth={2} />}
           />
+
+          {role === 'veterinarian' && (
+            <Input
+              label="Reg. No"
+              placeholder="No: XXXX"
+              value={regNo}
+              onChangeText={(text) => {
+                setRegNo(text);
+                if (errors.regNo) setErrors((prev) => ({ ...prev, regNo: '' }));
+              }}
+              error={errors.regNo}
+              required
+              leftIcon={<Stethoscope size={17} color={colors.textMuted} strokeWidth={2} />}
+            />
+          )}
+
           <Input
             label="Phone Number"
-            placeholder="+94 00 00 00 000"
-            keyboardType="phone-pad"
+            placeholder="0770101999"
+            keyboardType="number-pad"
+            maxLength={10}
             value={phone}
             onChangeText={(text) => {
-              setPhone(text);
+              const onlyNums = text.replace(/\D/g, '').slice(0, 10);
+              setPhone(onlyNums);
               if (errors.phone) setErrors((prev) => ({ ...prev, phone: '' }));
             }}
             error={errors.phone}
             required
-            hint="Sri Lankan format: e.g. 07XXXXXXXX or +94 7X XXX XXXX"
+            hint="Only 10 numbers allowed (e.g. 0770101999)"
             leftIcon={<Phone size={17} color={colors.textMuted} strokeWidth={2} />}
           />
 
-          <Button title="Create Account" onPress={handleRegister} loading={loading} style={styles.submitBtn} />
+          {role === 'veterinarian' && (
+            <View style={styles.adminContactNotice}>
+              <View style={styles.adminNoticeHeader}>
+                <ShieldCheck size={16} color="#B45309" />
+                <Text style={styles.adminNoticeTitle}>Admin Verification Notice</Text>
+              </View>
+              <Text style={styles.adminNoticeText}>
+                Doctors cannot access the portal until verified by the admin. Please wait for verification after submitting.
+              </Text>
+              <Text style={styles.adminNoticeContact}>
+                Contact Admin: admin@gmail.com, no-0770101999
+              </Text>
+            </View>
+          )}
+
+          <Button title="SUBMIT" onPress={handleRegister} loading={loading} style={styles.submitBtn} />
 
           <View style={styles.footerRow}>
             <Text style={styles.footerText}>Already registered? </Text>
@@ -337,6 +392,37 @@ const styles = StyleSheet.create({
   roleSubCardText: { fontSize: 12, color: colors.primaryDark, fontWeight: '600', lineHeight: 18 },
   formDivider: { height: 1, backgroundColor: colors.borderLight, marginBottom: 20 },
   submitBtn: { marginTop: 4, marginBottom: 18 },
+  adminContactNotice: {
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1.5,
+    borderColor: '#F59E0B',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 16,
+  },
+  adminNoticeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
+  adminNoticeTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#92400E',
+  },
+  adminNoticeText: {
+    fontSize: 12,
+    color: '#78350F',
+    lineHeight: 17,
+    fontWeight: '500',
+    marginBottom: 6,
+  },
+  adminNoticeContact: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#B45309',
+  },
   footerRow: { flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap' },
   footerText: { fontSize: 13, color: colors.textSecondary, fontWeight: '500' },
   footerLink: { fontSize: 13, fontWeight: '800', color: colors.primary },
