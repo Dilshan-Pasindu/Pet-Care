@@ -15,7 +15,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (credentials: LoginPayload) => Promise<void>;
-  register: (credentials: RegisterPayload) => Promise<void>;
+  register: (credentials: RegisterPayload) => Promise<import('../types/api').AuthResponse>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -54,10 +54,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setToken(authData.token);
   };
 
-  const register = async (credentials: RegisterPayload): Promise<void> => {
+  const register = async (credentials: RegisterPayload): Promise<import('../types/api').AuthResponse> => {
     const authData = await authService.register(credentials);
-    setUser(authData.user);
-    setToken(authData.token);
+    if (authData.token) {
+      setUser(authData.user);
+      setToken(authData.token);
+    }
+    return authData;
   };
 
   const logout = async (): Promise<void> => {

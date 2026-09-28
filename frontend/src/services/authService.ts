@@ -20,8 +20,10 @@ export const authService = {
   async register(credentials: RegisterPayload): Promise<AuthResponse> {
     const res = await api.post<ApiResponse<AuthResponse>>('/auth/register', credentials);
     const data = res.data.data!;
-    await storage.saveToken(data.token);
-    await storage.saveUser(data.user);
+    if (data.token) {
+      await storage.saveToken(data.token);
+      await storage.saveUser(data.user);
+    }
     return data;
   },
 
@@ -59,6 +61,11 @@ export const authService = {
 
   async setUserRole(userId: string, role: import('../types/models').UserRole): Promise<IUser> {
     const res = await api.patch<ApiResponse<IUser>>(`/auth/users/${userId}/role`, { role });
+    return res.data.data!;
+  },
+
+  async setDoctorVerification(userId: string, isVerified: boolean): Promise<IUser> {
+    const res = await api.patch<ApiResponse<IUser>>(`/auth/users/${userId}/verify-doctor`, { isVerified });
     return res.data.data!;
   },
 };

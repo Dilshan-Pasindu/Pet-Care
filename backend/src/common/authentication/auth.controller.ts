@@ -16,14 +16,18 @@ export const register = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { user, token } = await authService.registerUser(req.body as {
+    const result = await authService.registerUser(req.body as {
       name: string;
       email: string;
       password: string;
       phone?: string;
       role?: import('../../types/models').UserRole;
+      regNo?: string;
     });
-    sendSuccess(res, 201, 'Account created successfully.', { user, token });
+    const message = result.pendingVerification
+      ? 'Doctor registration submitted. Please wait for admin verification before logging in.'
+      : 'Account created successfully.';
+    sendSuccess(res, 201, message, result);
   } catch (error) {
     next(error);
   }
@@ -115,6 +119,26 @@ export const setUserRole = async (
     const { role } = req.body as { role: import('../../types/models').UserRole };
     const updatedUser = await authService.updateUserRole(id, role, req.user!.id);
     sendSuccess(res, 200, `User role updated to ${role} successfully.`, updatedUser);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const verifyDoctor = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { isVerified } = req.body as { isVerified?: boolean };
+    const updatedUser = await authService.setDoctorVerification(id, isVerified !== false);
+    sendSuccess(
+      res,
+      200,
+      `Doctor account has been ${isVerified !== false ? 'verified' : 'unverified'} successfully.`,
+      updatedUser
+    );
   } catch (error) {
     next(error);
   }

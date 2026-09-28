@@ -49,9 +49,15 @@ export const validateRegister: ValidationMiddleware[] = [
     .isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
 
   body('phone')
-    .optional()
+    .notEmpty().withMessage('Phone number is required')
     .trim()
-    .isMobilePhone('any').withMessage('Please provide a valid phone number'),
+    .custom((val) => {
+      const digitsOnly = String(val).replace(/\D/g, '');
+      if (digitsOnly.length !== 10 || String(val).trim().length !== 10) {
+        throw new Error('Phone number must be exactly 10 numbers');
+      }
+      return true;
+    }),
 
   body('role')
     .optional()
@@ -62,6 +68,20 @@ export const validateRegister: ValidationMiddleware[] = [
       }
       return true;
     }),
+
+  body('regNo')
+    .optional()
+    .trim(),
+
+  body().custom((reqBody) => {
+    const role = String(reqBody.role || '').toLowerCase();
+    if (role === 'veterinarian') {
+      if (!reqBody.regNo || !String(reqBody.regNo).trim()) {
+        throw new Error('Registration number (Reg. No) is required for veterinarians');
+      }
+    }
+    return true;
+  }),
 
   handleValidationErrors,
 ];
@@ -88,7 +108,14 @@ export const validateProfileUpdate: ValidationMiddleware[] = [
   body('phone')
     .optional()
     .trim()
-    .isMobilePhone('any').withMessage('Please provide a valid phone number'),
+    .custom((val) => {
+      if (!val) return true;
+      const digitsOnly = String(val).replace(/\D/g, '');
+      if (digitsOnly.length !== 10 || String(val).trim().length !== 10) {
+        throw new Error('Phone number must be exactly 10 numbers');
+      }
+      return true;
+    }),
 
   handleValidationErrors,
 ];

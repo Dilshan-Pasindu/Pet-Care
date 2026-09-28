@@ -39,6 +39,8 @@ const veterinarianSchema = new Schema<IVeterinarian>(
     typesOfCare: { type: String, trim: true, default: null },
     consultationFee: { type: Number, min: [0, 'Consultation fee cannot be negative'], default: 0 },
     availability: { type: [availabilitySlotSchema], default: [] },
+    regNo: { type: String, trim: true, default: null },
+    isVerified: { type: Boolean, default: false },
     profileImage: { type: String, default: null },
     description: { type: String, trim: true, maxlength: [1000, 'Description cannot exceed 1000 characters'], default: null },
   },

@@ -41,10 +41,18 @@ export const BookServiceScreen: React.FC = () => {
   const route = useRoute<RouteProps>();
   const { serviceId } = route.params;
 
+  const getTodayLocalDateStr = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const [service, setService] = useState<IService | null>(null);
   const [pets, setPets] = useState<IPet[]>([]);
   const [selectedPetId, setSelectedPetId] = useState<string>('');
-  const [date, setDate] = useState<string>(new Date().toISOString().substring(0, 10));
+  const [date, setDate] = useState<string>(getTodayLocalDateStr());
   const [time, setTime] = useState<string>('11:00 AM');
   const [notes, setNotes] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
@@ -74,14 +82,32 @@ export const BookServiceScreen: React.FC = () => {
       Alert.alert('Missing Pet', 'Please choose a pet for this service.');
       return;
     }
+    if (!date.trim()) {
+      Alert.alert('Missing Date', 'Please enter a booking date.');
+      return;
+    }
+    const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!isoDateRegex.test(date.trim()) || isNaN(Date.parse(date.trim()))) {
+      Alert.alert('Invalid Date', 'Please enter a valid date in YYYY-MM-DD format (e.g. 2026-10-15).');
+      return;
+    }
+    const todayStr = getTodayLocalDateStr();
+    if (date.trim() < todayStr) {
+      Alert.alert('Invalid Date', 'Cannot book a service for a previous date. Please select today or a future date.');
+      return;
+    }
+    if (!time.trim()) {
+      Alert.alert('Time Slot Required', 'Please select a preferred time slot.');
+      return;
+    }
 
     try {
       setSubmitting(true);
       await bookingService.createBooking({
         petId: selectedPetId,
         serviceId,
-        date,
-        time,
+        date: date.trim(),
+        time: time.trim(),
         notes: notes.trim() || undefined,
       });
 

@@ -16,6 +16,8 @@ export interface ApiResponse<T = unknown> {
 export interface AuthResponse {
   user: IUser;
   token: string;
+  pendingVerification?: boolean;
+  message?: string;
 }
 
 export interface LoginPayload {
@@ -29,6 +31,7 @@ export interface RegisterPayload {
   password: string;
   phone?: string;
   role?: UserRole;
+  regNo?: string;
   address?: string;
   city?: string;
   website?: string;

@@ -8,6 +8,7 @@ import {
   View,
   Text,
   FlatList,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
   Alert,
@@ -19,6 +20,7 @@ import {
   ShieldCheck,
   UserX,
   UserCheck,
+  CheckCircle,
   Search,
   Users,
   Shield,
@@ -26,6 +28,7 @@ import {
   PawPrint,
   Building2,
   ChevronRight,
+  Clock,
 } from 'lucide-react-native';
 import authService from '../../services/authService';
 import { useAuth } from '../../context/AuthContext';
@@ -36,7 +39,7 @@ import Badge from '../../components/common/Badge';
 import Loading from '../../components/common/Loading';
 import { isSmallDevice } from '../../utils/responsive';
 
-type FilterTab = 'all' | 'owner' | 'veterinarian' | 'service_center' | 'admin' | 'deactivated';
+type FilterTab = 'all' | 'pending_vets' | 'veterinarian' | 'owner' | 'service_center' | 'admin' | 'deactivated';
 
 export const AdminManagementScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
@@ -150,9 +153,44 @@ export const AdminManagementScreen: React.FC = () => {
     );
   };
 
+  const handleVerifyDoctor = (targetUser: IUser, verify: boolean = true) => {
+    Alert.alert(
+      verify ? 'Verify Doctor Account' : 'Revoke Doctor Verification',
+      verify
+        ? `Are you sure you want to verify Dr. "${targetUser.name}" (${targetUser.email}) with Reg. No "${targetUser.regNo || 'No: XXXX'}"? They will gain access to the Doctor Portal.`
+        : `Are you sure you want to revoke verification for Dr. "${targetUser.name}"? They will not be able to log in to the Doctor Portal until re-verified.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: verify ? 'Verify Doctor' : 'Revoke',
+          style: verify ? 'default' : 'destructive',
+          onPress: async () => {
+            try {
+              setUpdatingId(targetUser._id);
+              await authService.setDoctorVerification(targetUser._id, verify);
+              setUsers((prev) =>
+                prev.map((u) =>
+                  u._id === targetUser._id ? { ...u, isVerified: verify } : u
+                )
+              );
+              Alert.alert('Success', `Dr. "${targetUser.name}" is now ${verify ? 'verified' : 'unverified'}.`);
+            } catch (err: any) {
+              Alert.alert('Verification Failed', err.message || 'Could not update doctor verification');
+            } finally {
+              setUpdatingId(null);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   // Compute stats
   const totalCount = users.length;
   const vetCount = users.filter((u) => u.role.toLowerCase() === 'veterinarian').length;
+  const pendingVetsCount = users.filter(
+    (u) => u.role.toLowerCase() === 'veterinarian' && u.isVerified === false
+  ).length;
   const serviceCenterCount = users.filter((u) => u.role.toLowerCase() === 'service_center').length;
   const ownerCount = users.filter(
     (u) => u.role.toLowerCase() === 'owner' || u.role.toLowerCase() === 'customer'
@@ -168,6 +206,7 @@ export const AdminManagementScreen: React.FC = () => {
     if (!matchesSearch) return false;
 
     const r = u.role.toLowerCase();
+    if (activeTab === 'pending_vets') return r === 'veterinarian' && u.isVerified === false;
     if (activeTab === 'deactivated') return u.isActive === false;
     if (activeTab === 'owner') return r === 'owner' || r === 'customer';
     if (activeTab === 'veterinarian') return r === 'veterinarian';
@@ -221,12 +260,24 @@ export const AdminManagementScreen: React.FC = () => {
               </View>
               <Text style={styles.userEmail} numberOfLines={1}>{item.email}</Text>
               {item.phone ? <Text style={styles.userPhone}>📞 {item.phone}</Text> : null}
+              {roleLower === 'veterinarian' && (
+                <Text style={styles.userRegNo}>
+                  📋 Reg. No: {item.regNo || 'No: XXXX'}
+                </Text>
+              )}
             </View>
           </View>
         </View>
 
         <View style={styles.badgeRow}>
           <Badge label={roleDisplayName} variant={roleVariant} />
+          {roleLower === 'veterinarian' && (
+            item.isVerified === false ? (
+              <Badge label="PENDING VERIFICATION" variant="warning" />
+            ) : (
+              <Badge label="VERIFIED DOCTOR" variant="success" />
+            )
+          )}
           <Badge
             label={isActive ? 'ACTIVE' : 'INACTIVE'}
             variant={isActive ? 'success' : 'danger'}
@@ -235,6 +286,26 @@ export const AdminManagementScreen: React.FC = () => {
 
         {/* Action Controls */}
         <View style={styles.cardActions}>
+          {roleLower === 'veterinarian' && item.isVerified === false ? (
+            <TouchableOpacity
+              style={[styles.actionBtn, styles.verifyDoctorBtn]}
+              onPress={() => handleVerifyDoctor(item, true)}
+              disabled={isProcessing}
+            >
+              <CheckCircle size={14} color="#FFFFFF" />
+              <Text style={styles.verifyDoctorBtnText}>Verify Doctor</Text>
+            </TouchableOpacity>
+          ) : roleLower === 'veterinarian' && item.isVerified !== false ? (
+            <TouchableOpacity
+              style={[styles.actionBtn, styles.revokeDoctorBtn]}
+              onPress={() => handleVerifyDoctor(item, false)}
+              disabled={isProcessing}
+            >
+              <UserX size={14} color="#D97706" />
+              <Text style={styles.revokeDoctorBtnText}>Revoke Doctor</Text>
+            </TouchableOpacity>
+          ) : null}
+
           <TouchableOpacity
             style={[styles.actionBtn, styles.roleBtn]}
             onPress={() => handleChangeRole(item)}
@@ -302,18 +373,29 @@ export const AdminManagementScreen: React.FC = () => {
         </View>
 
         {/* Stats Row */}
-        <View style={styles.statsRow}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.statsScrollContent}
+          style={styles.statsScrollRow}
+        >
           <View style={styles.statPill}>
             <Text style={styles.statNumber}>{totalCount}</Text>
             <Text style={styles.statLabel}>Total</Text>
           </View>
-          <View style={styles.statPill}>
-            <Text style={styles.statNumber}>{ownerCount}</Text>
-            <Text style={styles.statLabel}>Customers</Text>
+          <View style={[styles.statPill, pendingVetsCount > 0 && styles.statPillPending]}>
+            <Text style={[styles.statNumber, pendingVetsCount > 0 && styles.statNumberPending]}>
+              {pendingVetsCount}
+            </Text>
+            <Text style={styles.statLabel}>Pending Vets</Text>
           </View>
           <View style={styles.statPill}>
             <Text style={styles.statNumber}>{vetCount}</Text>
             <Text style={styles.statLabel}>Vets</Text>
+          </View>
+          <View style={styles.statPill}>
+            <Text style={styles.statNumber}>{ownerCount}</Text>
+            <Text style={styles.statLabel}>Customers</Text>
           </View>
           <View style={styles.statPill}>
             <Text style={styles.statNumber}>{serviceCenterCount}</Text>
@@ -325,7 +407,7 @@ export const AdminManagementScreen: React.FC = () => {
             </Text>
             <Text style={styles.statLabel}>Inactive</Text>
           </View>
-        </View>
+        </ScrollView>
 
         {/* Search Bar */}
         <View style={styles.searchBar}>
@@ -341,29 +423,49 @@ export const AdminManagementScreen: React.FC = () => {
         </View>
 
         {/* Filter Tabs */}
-        <View style={styles.tabScroll}>
-          {(['all', 'owner', 'veterinarian', 'service_center', 'admin', 'deactivated'] as FilterTab[]).map((tab) => (
-            <TouchableOpacity
-              key={tab}
-              style={[styles.filterChip, activeTab === tab && styles.filterChipActive]}
-              onPress={() => setActiveTab(tab)}
-            >
-              <Text style={[styles.filterChipText, activeTab === tab && styles.filterChipTextActive]}>
-                {tab === 'all'
-                  ? 'All'
-                  : tab === 'owner'
-                  ? 'Customers'
-                  : tab === 'veterinarian'
-                  ? 'Vets'
-                  : tab === 'service_center'
-                  ? 'Service Centers'
-                  : tab === 'admin'
-                  ? 'Admins'
-                  : 'Inactive'}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabScrollContent}
+        >
+          {(['all', 'pending_vets', 'veterinarian', 'owner', 'service_center', 'admin', 'deactivated'] as FilterTab[]).map((tab) => {
+            const isTabActive = activeTab === tab;
+            const isPendingAlert = tab === 'pending_vets' && pendingVetsCount > 0 && !isTabActive;
+            return (
+              <TouchableOpacity
+                key={tab}
+                style={[
+                  styles.filterChip,
+                  isTabActive && styles.filterChipActive,
+                  isPendingAlert && styles.filterChipPendingAlert,
+                ]}
+                onPress={() => setActiveTab(tab)}
+              >
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    isTabActive && styles.filterChipTextActive,
+                    isPendingAlert && styles.filterChipTextAlert,
+                  ]}
+                >
+                  {tab === 'all'
+                    ? 'All'
+                    : tab === 'pending_vets'
+                    ? `Pending Vets (${pendingVetsCount})`
+                    : tab === 'owner'
+                    ? 'Customers'
+                    : tab === 'veterinarian'
+                    ? 'Vets'
+                    : tab === 'service_center'
+                    ? 'Service Centers'
+                    : tab === 'admin'
+                    ? 'Admins'
+                    : 'Inactive'}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
       </View>
 
       {loading && !refreshing ? (
@@ -427,22 +529,28 @@ const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: isSmallDevice ? 20 : 22, fontWeight: '800', color: colors.text },
   headerSubtitle: { fontSize: 12, color: colors.textSecondary, marginTop: 1 },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 8,
+  statsScrollRow: {
     marginBottom: 14,
   },
+  statsScrollContent: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingBottom: 2,
+  },
   statPill: {
-    flex: 1,
+    minWidth: 76,
     backgroundColor: colors.background,
     borderRadius: 12,
     paddingVertical: 8,
+    paddingHorizontal: 12,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.border,
   },
+  statPillPending: { borderColor: '#FDE68A', backgroundColor: '#FFFBEB' },
   statPillAlert: { borderColor: '#FECACA', backgroundColor: '#FEF2F2' },
   statNumber: { fontSize: 16, fontWeight: '800', color: colors.text },
+  statNumberPending: { color: '#D97706' },
   statNumberAlert: { color: colors.danger },
   statLabel: { fontSize: 11, color: colors.textSecondary, marginTop: 1 },
   searchBar: {
@@ -466,6 +574,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 6,
   },
+  tabScrollContent: {
+    flexDirection: 'row',
+    gap: 6,
+    paddingBottom: 2,
+  },
   filterChip: {
     paddingVertical: 6,
     paddingHorizontal: 12,
@@ -478,8 +591,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     borderColor: colors.primary,
   },
+  filterChipPendingAlert: {
+    borderColor: '#F59E0B',
+    backgroundColor: '#FEF3C7',
+  },
   filterChipText: { fontSize: 12, fontWeight: '600', color: colors.textSecondary },
   filterChipTextActive: { color: '#FFFFFF' },
+  filterChipTextAlert: { color: '#B45309', fontWeight: '700' },
   listContent: { paddingTop: 12 },
   userCard: {
     padding: isSmallDevice ? 12 : 16,
@@ -511,7 +629,8 @@ const styles = StyleSheet.create({
   userName: { fontSize: 15, fontWeight: '700', color: colors.text, flexShrink: 1 },
   userEmail: { fontSize: 13, color: colors.textSecondary, marginTop: 2 },
   userPhone: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
-  badgeRow: { flexDirection: 'row', gap: 8, marginTop: 12, alignItems: 'center' },
+  userRegNo: { fontSize: 12, color: colors.secondary, fontWeight: '700', marginTop: 3 },
+  badgeRow: { flexDirection: 'row', gap: 8, marginTop: 12, alignItems: 'center', flexWrap: 'wrap' },
   cardActions: {
     flexDirection: 'row',
     gap: 8,
@@ -519,9 +638,11 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: colors.borderLight,
+    flexWrap: 'wrap',
   },
   actionBtn: {
     flex: 1,
+    minWidth: 100,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -529,6 +650,22 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
+  },
+  verifyDoctorBtn: {
+    backgroundColor: colors.success,
+    borderColor: colors.success,
+  },
+  verifyDoctorBtnText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  revokeDoctorBtn: {
+    backgroundColor: '#FFFBEB',
+    borderColor: '#FDE68A',
+  },
+  revokeDoctorBtnText: {
+    color: '#D97706',
+    fontWeight: '700',
   },
   roleBtn: {
     backgroundColor: colors.surface,

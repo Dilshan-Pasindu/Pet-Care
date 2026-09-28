@@ -29,7 +29,20 @@ const handleValidationErrors = (req: Request, res: Response, next: NextFunction)
 export const validateCreateBooking: ValidationMiddleware[] = [
   body('petId').isMongoId().withMessage('Valid Pet ID is required'),
   body('serviceId').isMongoId().withMessage('Valid Service ID is required'),
-  body('date').isISO8601().withMessage('Valid booking date is required (YYYY-MM-DD)'),
+  body('date')
+    .isISO8601().withMessage('Valid booking date is required (YYYY-MM-DD)')
+    .custom((val) => {
+      const parts = String(val).split('T')[0].split('-');
+      if (parts.length === 3) {
+        const bookingDate = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (bookingDate < today) {
+          throw new Error('Booking date cannot be in the past');
+        }
+      }
+      return true;
+    }),
   body('time').trim().notEmpty().withMessage('Booking time is required (e.g. 10:00 AM)'),
   body('notes').optional().trim().isLength({ max: 500 }).withMessage('Notes cannot exceed 500 characters'),
   handleValidationErrors,

@@ -35,6 +35,8 @@ export interface IUser {
   phone?: string;
   role: UserRole;
   isActive?: boolean;
+  isVerified?: boolean;
+  regNo?: string | null;
   profileImage?: string | null;
   createdAt?: string;
   updatedAt?: string;
@@ -81,6 +83,8 @@ export interface IVeterinarian {
   typesOfCare?: string;
   consultationFee: number;
   availability: IAvailabilitySlot[];
+  regNo?: string | null;
+  isVerified?: boolean;
   profileImage?: string | null;
   description?: string;
   createdAt?: string;
