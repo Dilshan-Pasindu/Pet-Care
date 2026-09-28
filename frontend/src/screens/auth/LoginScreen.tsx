@@ -62,7 +62,15 @@ export const LoginScreen: React.FC = () => {
       setLoading(true);
       await login({ email: email.trim(), password });
     } catch (err: any) {
-      Alert.alert('Login Failed', err.message || 'Invalid email or password. Please try again.');
+      const msg = err.message || '';
+      if (msg.toLowerCase().includes('verification') || msg.toLowerCase().includes('pending')) {
+        Alert.alert(
+          'Verification Pending',
+          msg || 'Your account is pending verification. Please wait for admin verification before signing in.\n\nContact Admin:\nadmin@gmail.com, no-0770101999'
+        );
+      } else {
+        Alert.alert('Login Failed', msg || 'Invalid email or password. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
