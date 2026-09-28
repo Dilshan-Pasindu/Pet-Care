@@ -10,7 +10,7 @@
  */
 
 import { Router } from 'express';
-import { register, login, getMe, updateMe, getUsers, setUserStatus, setUserRole } from './auth.controller';
+import { register, login, getMe, updateMe, getUsers, setUserStatus, setUserRole, verifyDoctor } from './auth.controller';
 import { validateRegister, validateLogin, validateProfileUpdate } from './auth.validation';
 import { protect } from '../../middleware/authMiddleware';
 import { authorize } from '../../middleware/roleMiddleware';
@@ -30,5 +30,6 @@ router.put('/me', protect, uploadSingle('profileImage'), validateProfileUpdate, 
 router.get('/users', protect, authorize('admin'), getUsers);
 router.patch('/users/:id/status', protect, authorize('admin'), setUserStatus);
 router.patch('/users/:id/role', protect, authorize('admin'), setUserRole);
+router.patch('/users/:id/verify-doctor', protect, authorize('admin'), verifyDoctor);
 
 export default router;
