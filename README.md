@@ -1,56 +1,135 @@
-# PetCare — Pet Healthcare & Services Management Mobile Application
+# 🐾 PetCare — Pet Healthcare & Services Management Mobile Platform
 
-[![TypeScript](https://img.shields.io/badge/Language-TypeScript%205-blue.svg)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Backend-Node.js%20%7C%20Express-green.svg)](https://nodejs.org/)
-[![React Native](https://img.shields.io/badge/Frontend-React%20Native%20%7C%20Expo-61DAFB.svg)](https://reactnative.dev/)
-[![MongoDB](https://img.shields.io/badge/Database-MongoDB%20Atlas-brightgreen.svg)](https://www.mongodb.com/atlas)
+[![TypeScript](https://img.shields.io/badge/Language-TypeScript%205-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React Native](https://img.shields.io/badge/Frontend-React%20Native%20%7C%20Expo-61DAFB?style=flat-square&logo=react&logoColor=black)](https://reactnative.dev/)
+[![Node.js](https://img.shields.io/badge/Backend-Node.js%20%7C%20Express-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/Database-MongoDB%20Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white)](https://github.com/Dilshan-Pasindu/Pet-Care/actions)
+[![Jest](https://img.shields.io/badge/Tested%20with-Jest-C21325?style=flat-square&logo=jest&logoColor=white)](https://jestjs.io/)
 
-A full-stack mobile application written completely in **TypeScript** designed to streamline pet healthcare tracking, veterinary consultations, clinical record management, and service reservations.
+A full-stack, enterprise-grade mobile application built entirely in **TypeScript** to streamline veterinary care, clinical records, pet healthcare monitoring, service center reservations, and role-based administration.
 
 ---
 
 ## 📋 Table of Contents
-1. [Project Overview](#project-overview)
-2. [Technology Stack](#technology-stack)
-3. [System Architecture](#system-architecture)
-4. [Function Ownership & Structure](#function-ownership--structure)
-5. [Repository File Structure](#repository-file-structure)
-6. [Application & Authentication Workflow](#application--authentication-workflow)
-7. [Installation & Setup](#installation--setup)
-8. [Running Locally](#running-locally)
-9. [API & Documentation Links](#api--documentation-links)
-10. [Troubleshooting](#troubleshooting)
+1. [Platform Overview & Role-Based Portals](#-platform-overview--role-based-portals)
+2. [Key Features & Workflows](#-key-features--workflows)
+3. [Technology Stack](#-technology-stack)
+4. [System Architecture](#-system-architecture)
+5. [Domain Modules & Ownership](#-domain-modules--ownership)
+6. [Repository Structure](#-repository-structure)
+7. [Installation & Setup](#-installation--setup)
+8. [Running Locally](#-running-locally)
+9. [Automated Testing & CI/CD](#-automated-testing--cicd)
+10. [API Reference Overview](#-api-reference-overview)
+11. [Security & Validation Safeguards](#-security--validation-safeguards)
+12. [Support & Administrative Contacts](#-support--administrative-contacts)
 
 ---
 
-## 🐾 Project Overview
+## 🌟 Platform Overview & Role-Based Portals
 
-**PetCare** empowers pet owners to manage every aspect of their pets' health and daily care in one unified mobile platform:
-- **Pet Owners:** Maintain detailed health profiles, schedule vet visits, track clinical records and prescriptions, book grooming sessions, and leave reviews.
-- **Veterinarians:** Publish availability slots, manage appointments, and document examination diagnoses, medications, and vaccination records.
-- **Service Providers / Admins:** Offer grooming, boarding, training, and walking services, and oversee reservations.
+PetCare is structured into four distinct, role-dedicated portals that adapt the mobile interface to each user type:
+
+```
+                               ┌────────────────────────────────┐
+                               │       PetCare Ecosystem        │
+                               └───────────────┬────────────────┘
+                                               │
+      ┌───────────────────┬────────────────────┼────────────────────┬───────────────────┐
+      ▼                   ▼                    ▼                    ▼                   ▼
+┌──────────────┐   ┌──────────────┐     ┌──────────────┐     ┌──────────────┐    ┌──────────────┐
+│ Public / Auth│   │  Pet Owner   │     │ Veterinarian │     │Service Center│    │Administrator │
+│   Screens    │   │    Portal    │     │Doctor Portal │     │    Portal    │    │   Console    │
+└──────────────┘   └──────────────┘     └──────────────┘     └──────────────┘    └──────────────┘
+```
+
+1. **🐶 Pet Owner / Customer Portal:**
+   - Manage pet profiles with species, breed, gender, date of birth, weight, notes, and avatars.
+   - Search veterinarians by specialization and clinic location with interactive map directions.
+   - Schedule clinical consultations and book grooming, bathing, boarding, and daycare services.
+   - Review complete medical histories, diagnosis records, prescriptions, and vaccination timelines.
+   - Submit ratings and reviews (1–5 stars) for completed service center reservations.
+
+2. **👨‍⚕️ Veterinarian (Doctor) Portal:**
+   - Dedicated dashboard with daily appointment schedules, statistics, and patient counts.
+   - Manage appointment statuses (`pending` ➔ `confirmed` ➔ `completed` / `cancelled`).
+   - Access pet medical histories and document clinical diagnoses, treatments, medications, and vaccines.
+   - Configure clinic profile, availability schedules, consultation fees, and emergency contact info.
+
+3. **🏢 Pet-Care Service Center Portal:**
+   - Real-time dashboard tracking daily service bookings, revenue metrics, and customer reservations.
+   - Manage booking lifecycle (`pending`, `confirmed`, `in_progress`, `completed`, `cancelled`).
+   - Create, update, and publish service offerings (grooming, bathing, boarding, daycare, training).
+   - Maintain service center business profiles, address details, and operating hours.
+
+4. **🛡️ Administrator Console:**
+   - Comprehensive user directory with quick filtering by role (`owner`, `veterinarian`, `service_center`, `admin`, `deactivated`).
+   - Real-time screening and count of **Pending Veterinarian Verifications**.
+   - One-click doctor verification (`Verify Doctor` / `Revoke Doctor`) linked to the practitioner's official registration number (`Reg. No`).
+   - Instant account activation and deactivation controls.
+
+---
+
+## ⚡ Key Features & Workflows
+
+### 1. Doctor Registration & Admin Verification Workflow
+To protect animal health and prevent unauthorized clinical activities, veterinarians undergo a rigorous verification workflow:
+- **Registration Requirements**: Doctors must supply their official Veterinary Registration Number (**`Reg. No`**, formatted with placeholder `No: XXXX`) during signup.
+- **Submit Action**: Registration is submitted via the dedicated **SUBMIT** action.
+- **Unverified Status by Default**: Doctor accounts are initialized with `isVerified: false`. No authentication token is issued upon registration, preventing unverified portal access.
+- **No Direct Portal Access**: Doctors are redirected to the Login screen with an alert directing them to contact administration (`admin@gmail.com, no-0770101999`).
+- **Sign-In Protection**: If an unverified doctor attempts to log in, the backend rejects the request with HTTP 403 Forbidden, and the mobile client displays a **Verification Pending** alert with administrative contact details.
+- **Admin Verification Console**: Administrators filter pending doctors, inspect their submitted `Reg. No`, and verify or revoke credentials with a single click.
+
+### 2. Strict Input & Phone Number Validation
+- Phone numbers are validated to **exactly 10 digits** (`/^\d{10}$/`) across frontend and backend.
+- The registration form features a numeric keyboard (`keyboardType="number-pad"`), a strict 10-character limit, and automatic non-digit stripping.
+- Password and confirm password inputs enforce matching verification before enabling form submission.
+
+### 3. Date Safeguards for Bookings
+- Consultation appointments and service center reservations cannot be booked for past dates.
+- Booking forms validate selected dates against current time boundaries, preventing invalid scheduling.
+
+### 4. Warm Peach Medical Pet-Care Aesthetic
+- Cohesive color scheme featuring warm peach (`#FF8C66`), pastel coral surfaces (`#FFF5F2`), mint accents (`#4ECDC4`), and clean typography.
+- Engaging welcome onboarding screen with custom brand imagery and smooth micro-animations.
 
 ---
 
 ## 🛠 Technology Stack
 
-### Mobile Frontend
-- **Framework:** React Native (v0.73) with Expo (SDK 50)
-- **Language:** TypeScript (`.ts`, `.tsx`) with strict type checking
-- **Navigation:** React Navigation v6 (Stack & Bottom Tabs with typed parameters)
-- **State Management:** React Context API (`AuthContext`)
-- **HTTP Client:** Axios with token injection and automatic error interception
-- **Storage:** `@react-native-async-storage/async-storage`
-- **Media:** `expo-image-picker`
+### Mobile Client (Frontend)
+| Technology | Version / Spec | Purpose |
+|---|---|---|
+| **React Native** | 0.73.6 | Cross-platform native mobile framework |
+| **Expo** | ~50.0.14 | Development toolkit and device runtime |
+| **TypeScript** | ~5.3.3 | Strict static type definitions across components and navigators |
+| **React Navigation** | v6 (Stack & Bottom Tabs) | Role-based nested navigation with typed routes |
+| **Lucide React Native** | ^0.359.0 | Icon system across tabs, cards, and action buttons |
+| **Axios** | ^1.6.8 | HTTP client with automatic Bearer token injection |
+| **AsyncStorage** | 1.21.0 | Persistent device storage for auth tokens and user data |
+| **Expo Image Picker** | ~14.7.1 | Image selection for pet avatars and profile photos |
+| **Safe Area Context** | 4.8.2 | Responsive insets handling across iOS and Android devices |
 
 ### Backend API
-- **Runtime:** Node.js (v18+)
-- **Framework:** Express.js (v4.18) with TypeScript
-- **Database:** MongoDB Atlas with Mongoose ODM (v7)
-- **Authentication:** JWT (JSON Web Tokens) with HTTP Bearer Authorization
-- **Security:** bcryptjs password hashing, role-based authorization middleware
-- **File Uploads:** Multer with local disk storage (`uploads/`), optional pet photos, zero binary in MongoDB
-- **Validation:** Express-Validator with strict schema rules
+| Technology | Version / Spec | Purpose |
+|---|---|---|
+| **Node.js** | v18+ | JavaScript runtime engine |
+| **Express.js** | ^4.18.2 | RESTful API server framework |
+| **TypeScript** | ^5.3.3 | Typed backend services, controllers, and models |
+| **MongoDB Atlas** | Cloud M0/M10 | Document database for records, users, and bookings |
+| **Mongoose** | ^7.6.3 | Schema modeling and ODM |
+| **JWT (jsonwebtoken)** | ^9.0.2 | Stateless authentication tokens |
+| **bcryptjs** | ^2.4.3 | Salted password hashing (10 rounds) |
+| **Multer** | ^1.4.5 | Multipart file uploads for pet avatars (`/uploads`) |
+| **Joi / Validator** | ^17.13.3 / ^13.11.0 | Strict payload schema and parameter validation |
+| **CORS & Morgan** | ^2.8.5 / ^1.10.0 | Cross-origin policy management and request logging |
+
+### Testing & DevOps
+- **Jest & ts-jest**: Unit testing suite for validation rules, role authorization, and health endpoints.
+- **GitHub Actions**: Automated CI pipeline running linting, TypeScript compilation, and Jest tests on every push/PR.
+- **Continuous Delivery**: CD pipeline with automated deployment workflows.
 
 ---
 
@@ -58,230 +137,156 @@ A full-stack mobile application written completely in **TypeScript** designed to
 
 ```mermaid
 graph TD
-    subgraph Mobile Frontend [React Native + Expo App]
-        UI[Mobile UI Screens]
-        Ctx[AuthContext & Storage]
-        Nav[React Navigation]
-        Ax[Axios HTTP Client]
+    subgraph Client [React Native Mobile App - Expo]
+        Nav[Root Navigator - Role Based]
+        AuthCtx[Auth Context & Secure Storage]
+        OwnerTabs[Owner Portal Tabs]
+        VetTabs[Doctor Portal Tabs]
+        CenterTabs[Service Center Portal Tabs]
+        AdminTabs[Admin Console Tabs]
+        AxClient[Axios HTTP Client + Interceptors]
     end
 
-    subgraph Backend Services [Express.js on Node.js]
-        Router[API Gateway / Router]
-        AuthMid[Auth & JWT Middleware]
-        UploadMid[Multer Disk Storage]
-        F1[Function 1: Pet Management]
-        F2[Function 2: Veterinarian Directory]
-        F3[Function 3: Appointments]
-        F4[Function 4: Medical Records]
-        F5[Function 5: Services Catalog]
-        F6[Function 6: Bookings & Reviews]
-
-        Router --> AuthMid
-        Router --> UploadMid
-        Router --> F1
-        Router --> F2
-        Router --> F3
-        Router --> F4
-        Router --> F5
-        Router --> F6
+    subgraph API Gateway [Node.js / Express Server]
+        Router[API Gateway Routes]
+        AuthMW[JWT Authentication Middleware]
+        RoleMW[Role-Based Authorization Middleware]
+        UploadMW[Multer Local Disk Storage]
     end
 
-    subgraph Infrastructure
-        DB[(MongoDB Atlas - Data & Path References)]
-        Storage[(Backend File Storage /uploads)]
+    subgraph Service Layer [Domain Modules]
+        AuthSvc[Auth & User Service]
+        PetSvc[Function 1: Pet Service]
+        VetSvc[Function 2: Veterinarian Service]
+        ApptSvc[Function 3: Appointment Service]
+        MedSvc[Function 4: Medical Record Service]
+        ServSvc[Function 5: Services Catalog Service]
+        BookSvc[Function 6: Booking & Review Service]
     end
 
-    Ax -- REST API / Bearer JWT --> Router
-    F1 & F2 & F3 & F4 & F5 & F6 --> DB
-    UploadMid --> Storage
+    subgraph Persistence [Data Tier]
+        Mongo[(MongoDB Atlas Database)]
+        Disk[Local File Storage: /uploads]
+    end
+
+    Nav --> AuthCtx
+    AuthCtx --> AxClient
+    OwnerTabs & VetTabs & CenterTabs & AdminTabs --> AxClient
+    AxClient -- HTTP Bearer JWT --> Router
+
+    Router --> AuthMW --> RoleMW
+    Router --> UploadMW --> Disk
+    RoleMW --> AuthSvc & PetSvc & VetSvc & ApptSvc & MedSvc & ServSvc & BookSvc
+
+    AuthSvc & PetSvc & VetSvc & ApptSvc & MedSvc & ServSvc & BookSvc --> Mongo
 ```
 
 ---
 
-## 👥 Function Ownership & Structure
+## 👥 Domain Modules & Ownership
 
-The repository is strictly modularized across six distinct functional ownership areas plus common authentication:
-
-| Function | Domain | Main Models | Primary Responsibilities |
-|---|---|---|---|
-| **Common** | Auth & Users | `User` | Registration, login, password hashing, JWT, profiles |
-| **Function 1** | Pet Management | `Pet` | Pet profiles, breeds, photos, physical attributes |
-| **Function 2** | Veterinarians | `Veterinarian` | Vet search, clinic information, schedule slots |
-| **Function 3** | Appointments | `Appointment` | Booking visits, status workflow (pending ➔ confirmed ➔ completed) |
-| **Function 4** | Medical Records | `MedicalRecord` | Clinical timeline, diagnoses, treatments, medications, vaccines |
-| **Function 5** | Pet Services | `Service` | Service catalog (grooming, bathing, boarding), pricing |
-| **Function 6** | Bookings & Reviews | `ServiceBooking`, `Review` | Service reservations, ratings (1-5 stars) and feedback |
+| Domain Module | Primary Model | Key Capabilities |
+|---|---|---|
+| **Common Auth** | `User` | Registration, login, password encryption, JWT generation, doctor verification (`isVerified`), `regNo`. |
+| **Function 1: Pets** | `Pet` | Pet registration, breeds, birth date, weight, health conditions, photo uploads. |
+| **Function 2: Veterinarians** | `Veterinarian` | Directory search, specialization, clinic details, availability slots, `regNo`, verification status. |
+| **Function 3: Appointments** | `Appointment` | In-clinic booking, scheduling conflicts prevention, past date blocking, appointment lifecycle. |
+| **Function 4: Medical Records** | `MedicalRecord` | Clinical diagnoses, treatment notes, prescribed medicines, dosage, vaccination timelines. |
+| **Function 5: Services** | `Service` | Pet services catalog (grooming, bathing, boarding, daycare, training), pricing, duration. |
+| **Function 6: Bookings & Reviews** | `ServiceBooking`, `Review` | Service reservations, date validation, 5-star customer feedback, service center ratings. |
 
 ---
 
-## 📁 Repository File Structure
+## 📁 Repository Structure
 
 ```text
 PetCare/
-├── README.md
-├── TEAM_FUNCTION_PLAN.md
-├── package.json
+├── .github/
+│   └── workflows/
+│       ├── ci.yml                          # Continuous Integration (build, type-check, tests)
+│       └── cd.yml                          # Continuous Delivery automation
+├── README.md                               # Project documentation
+├── TEAM_FUNCTION_PLAN.md                   # Team milestones and functional responsibilities
 │
 ├── backend/
 │   ├── package.json
 │   ├── tsconfig.json
 │   ├── .env.example
 │   ├── tests/
-│   │   └── health.test.ts
+│   │   ├── health.test.ts                  # Server health & connectivity tests
+│   │   ├── appointmentValidation.test.ts   # Date & strict 10-digit phone tests
+│   │   └── roleAuth.test.ts                # Role-based middleware tests
 │   └── src/
-│       ├── server.ts
-│       ├── app.ts
+│       ├── server.ts                       # Entry point and HTTP server listener
+│       ├── app.ts                          # Express application configuration & middleware
 │       ├── config/
-│       │   └── database.ts
+│       │   └── database.ts                 # MongoDB connection handler
 │       ├── middleware/
-│       │   ├── authMiddleware.ts
-│       │   ├── roleMiddleware.ts
-│       │   ├── uploadMiddleware.ts
-│       │   └── errorMiddleware.ts
-│       ├── utils/
-│       │   ├── generateToken.ts
-│       │   └── response.ts
+│       │   ├── authMiddleware.ts           # JWT extraction and validation
+│       │   ├── roleMiddleware.ts           # Role-based access control (RBAC)
+│       │   ├── uploadMiddleware.ts         # Multer multipart disk storage
+│       │   └── errorMiddleware.ts          # Centralized error handler
 │       ├── types/
-│       │   ├── express.d.ts
-│       │   └── models.ts
-│       ├── common/
-│       │   └── authentication/
-│       │       ├── user.model.ts
-│       │       ├── auth.controller.ts
-│       │       ├── auth.routes.ts
-│       │       ├── auth.service.ts
-│       │       └── auth.validation.ts
+│       │   ├── express.d.ts                # Express Request user extensions
+│       │   └── models.ts                   # Core TypeScript model interfaces
+│       ├── common/authentication/
+│       │   ├── user.model.ts               # User schema (roles, isVerified, regNo)
+│       │   ├── auth.controller.ts          # Auth endpoints & verifyDoctor controller
+│       │   ├── auth.routes.ts              # Route definitions (/api/auth)
+│       │   ├── auth.service.ts             # Auth business logic and verification
+│       │   └── auth.validation.ts          # 10-digit phone & vet regNo validation
 │       └── functions/
-│           ├── function1-pets/
-│           │   ├── pet.model.ts
-│           │   ├── pet.controller.ts
-│           │   ├── pet.routes.ts
-│           │   ├── pet.service.ts
-│           │   └── pet.validation.ts
-│           ├── function2-veterinarians/
-│           │   ├── veterinarian.model.ts
-│           │   ├── veterinarian.controller.ts
-│           │   ├── veterinarian.routes.ts
-│           │   ├── veterinarian.service.ts
-│           │   └── veterinarian.validation.ts
-│           ├── function3-appointments/
-│           │   ├── appointment.model.ts
-│           │   ├── appointment.controller.ts
-│           │   ├── appointment.routes.ts
-│           │   ├── appointment.service.ts
-│           │   └── appointment.validation.ts
-│           ├── function4-medical-records/
-│           │   ├── medicalRecord.model.ts
-│           │   ├── medicalRecord.controller.ts
-│           │   ├── medicalRecord.routes.ts
-│           │   ├── medicalRecord.service.ts
-│           │   └── medicalRecord.validation.ts
-│           ├── function5-services/
-│           │   ├── service.model.ts
-│           │   ├── service.controller.ts
-│           │   ├── service.routes.ts
-│           │   ├── service.service.ts
-│           │   └── service.validation.ts
-│           └── function6-bookings-reviews/
-│               ├── serviceBooking.model.ts
-│               ├── serviceBooking.controller.ts
-│               ├── serviceBooking.routes.ts
-│               ├── serviceBooking.service.ts
-│               ├── review.model.ts
-│               ├── review.controller.ts
-│               ├── review.routes.ts
-│               ├── review.service.ts
-│               └── validation/
-│                   ├── bookingValidation.ts
-│                   └── reviewValidation.ts
+│           ├── function1-pets/             # Pet profiles & photo management
+│           ├── function2-veterinarians/     # Doctor profiles & registration numbers
+│           ├── function3-appointments/     # Vet consultation bookings & date checks
+│           ├── function4-medical-records/  # Prescriptions, diagnoses & vaccines
+│           ├── function5-services/         # Service offerings catalog & pricing
+│           └── function6-bookings-reviews/ # Service bookings & 5-star customer reviews
 │
-├── frontend/
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── app.json
-│   ├── babel.config.js
-│   ├── .env.example
-│   ├── App.tsx
-│   └── src/
-│       ├── constants/
-│       │   ├── colors.ts
-│       │   └── config.ts
-│       ├── types/
-│       │   ├── api.ts
-│       │   ├── models.ts
-│       │   └── navigation.ts
-│       ├── utils/
-│       │   ├── storage.ts
-│       │   └── formatDate.ts
-│       ├── services/
-│       │   ├── api.ts
-│       │   └── authService.ts
-│       ├── context/
-│       │   └── AuthContext.tsx
-│       ├── components/
-│       │   └── common/
-│       │       ├── Button.tsx
-│       │       ├── Input.tsx
-│       │       ├── Card.tsx
-│       │       ├── Loading.tsx
-│       │       └── Badge.tsx
-│       ├── navigation/
-│       │   ├── AuthNavigator.tsx
-│       │   ├── MainTabNavigator.tsx
-│       │   └── RootNavigator.tsx
-│       ├── screens/
-│       │   ├── auth/
-│       │   │   ├── LoginScreen.tsx
-│       │   │   └── RegisterScreen.tsx
-│       │   ├── home/
-│       │   │   └── HomeScreen.tsx
-│       │   └── profile/
-│       │       └── ProfileScreen.tsx
-│       └── functions/
-│           ├── function1-pets/
-│           │   ├── services/petService.ts
-│           │   └── screens/
-│           │       ├── PetListScreen.tsx
-│           │       ├── PetDetailScreen.tsx
-│           │       ├── AddPetScreen.tsx
-│           │       └── EditPetScreen.tsx
-│           ├── function2-veterinarians/
-│           │   ├── services/vetService.ts
-│           │   └── screens/
-│           │       ├── VetListScreen.tsx
-│           │       └── VetDetailScreen.tsx
-│           ├── function3-appointments/
-│           │   ├── services/appointmentService.ts
-│           │   └── screens/
-│           │       ├── AppointmentListScreen.tsx
-│           │       ├── BookAppointmentScreen.tsx
-│           │       └── AppointmentDetailScreen.tsx
-│           ├── function4-medical-records/
-│           │   ├── services/medicalRecordService.ts
-│           │   └── screens/
-│           │       ├── MedicalRecordListScreen.tsx
-│           │       ├── MedicalRecordDetailScreen.tsx
-│           │       └── AddMedicalRecordScreen.tsx
-│           ├── function5-services/
-│           │   ├── services/serviceService.ts
-│           │   └── screens/
-│           │       ├── ServiceListScreen.tsx
-│           │       └── ServiceDetailScreen.tsx
-│           └── function6-bookings-reviews/
-│               ├── services/
-│               │   ├── bookingService.ts
-│               │   └── reviewService.ts
-│               └── screens/
-│                   ├── BookServiceScreen.tsx
-│                   ├── MyBookingsScreen.tsx
-│                   └── AddReviewScreen.tsx
-│
-└── docs/
-    ├── API_ENDPOINTS.md
-    ├── DATABASE_SCHEMA.md
-    ├── SYSTEM_ARCHITECTURE.md
-    ├── APPLICATION_WORKFLOW.md
-    └── DEPLOYMENT.md
+└── frontend/
+    ├── package.json
+    ├── tsconfig.json
+    ├── app.json                            # Expo app configuration
+    ├── App.tsx                             # Application bootstrap & provider wrap
+    └── src/
+        ├── constants/
+        │   ├── colors.ts                   # Warm peach & mint color tokens
+        │   └── config.ts                   # API URL resolution
+        ├── context/
+        │   └── AuthContext.tsx             # Authentication state, login & role storage
+        ├── navigation/
+        │   ├── RootNavigator.tsx           # Role-based routing & security guard
+        │   ├── AuthNavigator.tsx           # Welcome, Login, Register stack
+        │   ├── OwnerTabNavigator.tsx       # Pet Owner bottom tabs
+        │   ├── VeterinarianTabNavigator.tsx# Doctor portal bottom tabs
+        │   ├── ServiceCenterTabNavigator.tsx# Service center bottom tabs
+        │   └── AdminTabNavigator.tsx       # Admin console bottom tabs
+        ├── screens/
+        │   ├── auth/
+        │   │   ├── WelcomeScreen.tsx       # Onboarding landing page
+        │   │   ├── LoginScreen.tsx         # Sign-in & pending verification alert
+        │   │   └── RegisterScreen.tsx      # Registration with Reg. No & 10-digit phone
+        │   ├── admin/
+        │   │   └── AdminManagementScreen.tsx# User directory, doctor verification & screening
+        │   ├── veterinarian/
+        │   │   ├── VetDashboardScreen.tsx  # Doctor statistics & quick actions
+        │   │   ├── VetAppointmentsScreen.tsx# Manage appointment consultations
+        │   │   ├── VetPatientsScreen.tsx   # Patient histories & clinical records
+        │   │   └── VetProfileScreen.tsx    # Doctor profile & availability
+        │   ├── serviceCenter/
+        │   │   ├── ServiceCenterDashboardScreen.tsx # Bookings & metrics overview
+        │   │   ├── ServiceCenterBookingsScreen.tsx  # Manage reservations
+        │   │   ├── ServiceCenterServicesScreen.tsx  # Service catalog manager
+        │   │   └── ServiceCenterProfileScreen.tsx   # Center profile & hours
+        │   ├── home/HomeScreen.tsx         # Owner home dashboard
+        │   └── profile/ProfileScreen.tsx   # User profile management
+        └── functions/
+            ├── function1-pets/             # Pet screens (List, Add, Edit, Detail)
+            ├── function2-veterinarians/     # Vet directory & detail screens
+            ├── function3-appointments/     # Appointment booking screens
+            ├── function4-medical-records/  # Medical records & prescription viewer
+            ├── function5-services/         # Services catalog screens
+            └── function6-bookings-reviews/ # Service booking & review screens
 ```
 
 ---
@@ -289,10 +294,10 @@ PetCare/
 ## ⚡ Installation & Setup
 
 ### Prerequisites
-- [Node.js](https://nodejs.org/) v18 or higher
-- [npm](https://www.npmjs.com/)
-- [Expo Go app](https://expo.dev/client) installed on your iOS/Android phone
-- MongoDB Atlas cluster URL
+- [Node.js](https://nodejs.org/) (v18.x or v20.x recommended)
+- [npm](https://www.npmjs.com/) (v9.x or v10.x)
+- [Expo Go](https://expo.dev/client) app installed on your physical mobile device, or Xcode / Android Studio for emulators
+- A running MongoDB Atlas instance or local MongoDB server
 
 ### 1. Clone the Repository
 ```bash
@@ -300,57 +305,148 @@ git clone https://github.com/Dilshan-Pasindu/Pet-Care.git
 cd Pet-Care
 ```
 
-### 2. Backend Setup
+### 2. Backend Configuration & Installation
 ```bash
 cd backend
-cp .env.example .env
-# Edit .env with your MongoDB Atlas connection string and JWT secret
 npm install
+cp .env.example .env
+```
+Edit `backend/.env` with your credentials:
+```env
+PORT=5000
+NODE_ENV=development
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/petcare?retryWrites=true&w=majority
+JWT_SECRET=your_super_secret_jwt_key_at_least_32_characters_long
+JWT_EXPIRES_IN=30d
 ```
 
-### 3. Frontend Setup
+### 3. Frontend Configuration & Installation
 ```bash
 cd ../frontend
-cp .env.example .env
-# Set EXPO_PUBLIC_API_URL to your backend URL (e.g., http://<YOUR_IP>:5000/api)
 npm install
+cp .env.example .env
+```
+Edit `frontend/.env` with your backend server URL:
+```env
+# For physical devices with Expo Go, use your local Wi-Fi IP address:
+EXPO_PUBLIC_API_URL=http://192.168.1.100:5000/api
+
+# For iOS Simulator:
+# EXPO_PUBLIC_API_URL=http://localhost:5000/api
+
+# For Android Emulator:
+# EXPO_PUBLIC_API_URL=http://10.0.2.2:5000/api
 ```
 
 ---
 
 ## 🚀 Running Locally
 
-### Start Backend
+### 1. Start Backend API
 ```bash
 cd backend
 npm run dev
 ```
-The server will start on `http://localhost:5000`. Health check endpoint: `http://localhost:5000/api/health`.
+- Server starts on `http://localhost:5000`.
+- Verify server health at: `http://localhost:5000/api/health`.
 
-### Start Frontend (Expo)
+### 2. Start Mobile Frontend
 ```bash
 cd frontend
 npx expo start
 ```
-- Press **i** for iOS Simulator
-- Press **a** for Android Emulator
-- Scan the QR code with **Expo Go** on your physical iPhone or Android device
+- Press **`a`** to launch on an open Android Emulator.
+- Press **`i`** to launch on an iOS Simulator.
+- Scan the displayed QR code with the **Expo Go** app on your physical mobile device.
 
 ---
 
-## 📚 Documentation
-- [Team Development Plan (TEAM_FUNCTION_PLAN.md)](./TEAM_FUNCTION_PLAN.md)
-- [API Endpoints Reference (docs/API_ENDPOINTS.md)](./docs/API_ENDPOINTS.md)
-- [Database Schema (docs/DATABASE_SCHEMA.md)](./docs/DATABASE_SCHEMA.md)
-- [System Architecture (docs/SYSTEM_ARCHITECTURE.md)](./docs/SYSTEM_ARCHITECTURE.md)
-- [Application Workflow (docs/APPLICATION_WORKFLOW.md)](./docs/APPLICATION_WORKFLOW.md)
-- [Deployment Guide (docs/DEPLOYMENT.md)](./docs/DEPLOYMENT.md)
+## 🧪 Automated Testing & CI/CD
+
+### Running Backend Unit Tests
+The backend test suite is powered by Jest and validates schema validations, past-date booking rules, 10-digit phone restrictions, and role authorizations:
+```bash
+cd backend
+npm test
+```
+
+### TypeScript Compilation Check
+Verify type integrity across both frontend and backend without emitting build artifacts:
+```bash
+# Backend type check
+cd backend && npx tsc --noEmit
+
+# Frontend type check
+cd ../frontend && npx tsc --noEmit
+```
+
+### GitHub Actions CI/CD Pipeline
+Every commit and Pull Request pushed to `main` or `dev` triggers the automated CI workflow (`.github/workflows/ci.yml`):
+- Runs backend and frontend linting.
+- Executes full TypeScript type verification.
+- Executes Jest test suites.
+- Ensures zero regressions across critical authorization and validation paths.
 
 ---
 
-## 🛡 Security & Best Practices
-- Passwords are encrypted using bcrypt with salt rounds of 10.
-- Passwords are excluded (`select: false`) from queries.
-- Protected routes require Bearer JWT authorization tokens.
-- Role-based authorization ensures owners, veterinarians, and admins only access permitted endpoints.
-- Strict input validation prevents parameter pollution and injection attacks.
+## 📡 API Reference Overview
+
+### Authentication & Users (`/api/auth`)
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | Public | Register user (`owner`, `veterinarian`, `service_center`). Enforces 10-digit phone and `regNo` for vets. |
+| `POST` | `/api/auth/login` | Public | Authenticate user; rejects unverified doctors with HTTP 403. |
+| `GET` | `/api/auth/me` | Protected | Fetch authenticated user profile. |
+| `GET` | `/api/auth/users` | Admin | Retrieve all system user records. |
+| `PATCH` | `/api/auth/users/:id/status` | Admin | Activate or deactivate a user account. |
+| `PATCH` | `/api/auth/users/:id/role` | Admin | Reassign a user's system role. |
+| `PATCH` | `/api/auth/users/:id/verify-doctor` | Admin | Verify or revoke a veterinarian's credentials. |
+
+### Pets (`/api/pets`)
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/pets` | Owner / Vet | List pets owned by current user (or all for vet/admin). |
+| `POST` | `/api/pets` | Owner | Register new pet with optional avatar photo upload. |
+| `GET` | `/api/pets/:id` | Protected | Retrieve detailed pet medical & profile record. |
+| `PUT` | `/api/pets/:id` | Owner | Update pet profile details and physical attributes. |
+| `DELETE` | `/api/pets/:id` | Owner | Remove a pet profile. |
+
+### Appointments & Consultations (`/api/appointments`)
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `POST` | `/api/appointments` | Owner | Schedule a clinic visit (past dates rejected). |
+| `GET` | `/api/appointments` | Owner / Vet | List appointments filtered by role. |
+| `PATCH` | `/api/appointments/:id/status` | Vet / Admin | Update consultation status (`confirmed`, `completed`, `cancelled`). |
+
+### Services & Bookings (`/api/services`, `/api/bookings`)
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/services` | Public | Browse grooming, boarding, and daycare offerings. |
+| `POST` | `/api/services` | Service Center / Admin | Create a service offering. |
+| `POST` | `/api/bookings` | Owner | Book a pet care service (past dates rejected). |
+| `PATCH` | `/api/bookings/:id/status` | Service Center | Update reservation progress. |
+| `POST` | `/api/reviews` | Owner | Post a 1–5 star rating and review. |
+
+---
+
+## 🛡 Security & Validation Safeguards
+
+1. **Strict 10-Digit Numeric Phone Rule**:
+   - Phone fields strictly enforce `/^\d{10}$/`. Format variations or alphanumeric inputs are blocked at both client and server validation layers.
+2. **Veterinarian Registration Gatekeeping**:
+   - Doctor signups require an official Registration Number (`Reg. No`).
+   - Doctor accounts default to unverified (`isVerified: false`) and are barred from portal navigation until approved by an administrator.
+3. **Password Security**:
+   - Passwords are encrypted with bcrypt (10 rounds) and excluded from query outputs (`select: false`).
+4. **Role-Based Access Control (RBAC)**:
+   - Routes and client navigators enforce strict separation between pet owners, doctors, service centers, and admins.
+5. **No Past-Date Bookings**:
+   - Both medical consultations and pet care reservations enforce date integrity checks prohibiting historical appointments.
+
+---
+
+## 📞 Support & Administrative Contacts
+
+For veterinary verification requests, system inquiries, or credential reviews, please contact the administrative team:
+- **Email**: [admin@gmail.com](mailto:admin@gmail.com)
+- **Phone**: `0770101999`
