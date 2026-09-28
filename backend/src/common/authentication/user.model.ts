@@ -70,6 +70,17 @@ const userSchema = new Schema<IUser>(
       default: true,
     },
 
+    isVerified: {
+      type: Boolean,
+      default: true,
+    },
+
+    regNo: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+
     profileImage: {
       type: String,
       default: null,
