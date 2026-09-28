@@ -16,6 +16,7 @@ interface RegisterInput {
   password: string;
   phone?: string;
   role?: UserRole;
+  regNo?: string;
 }
 
 interface UpdateProfileInput {
@@ -30,18 +31,23 @@ const toUserResponse = (user: IUser): IUserResponse => ({
   phone: user.phone,
   role: user.role,
   isActive: user.isActive !== false,
+  isVerified: user.isVerified !== false,
+  regNo: user.regNo || null,
   profileImage: user.profileImage,
   createdAt: user.createdAt,
 });
 
 export const registerUser = async (userData: RegisterInput): Promise<AuthPayload> => {
-  const { name, email, password, phone, role } = userData;
+  const { name, email, password, phone, role, regNo } = userData;
 
   const existingUser = await User.findOne({ email });
   if (existingUser) {
     const error = Object.assign(new Error('An account with this email already exists.'), { statusCode: 409 });
     throw error;
   }
+
+  const normalizedRole = role ? (role as string).toLowerCase() : 'owner';
+  const isDoctor = normalizedRole === 'veterinarian';
 
   const user = await User.create({
     name,
@@ -50,9 +56,35 @@ export const registerUser = async (userData: RegisterInput): Promise<AuthPayload
     phone: phone ?? null,
     role: role ?? 'owner',
     isActive: true,
+    isVerified: !isDoctor, // Doctors require admin verification
+    regNo: isDoctor && regNo ? regNo.trim() : null,
   });
 
-  const normalizedRole = (user.role as string).toLowerCase();
+  if (isDoctor) {
+    try {
+      const Veterinarian = (await import('../../functions/function2-veterinarians/veterinarian.model')).default;
+      await Veterinarian.create({
+        userId: user._id,
+        name: user.name,
+        specialization: 'General Veterinary Care',
+        regNo: regNo ? regNo.trim() : null,
+        phone: user.phone || null,
+        email: user.email,
+        isVerified: false,
+      });
+    } catch (e) {
+      console.error('Failed to create default Veterinarian profile:', e);
+    }
+
+    // Doctors cannot log in until verified by admin
+    return {
+      user: toUserResponse(user),
+      token: '',
+      pendingVerification: true,
+      message: 'Doctor registration submitted. Please wait for admin verification before logging in. Contact admin at admin@gmail.com, no-0770101999.',
+    };
+  }
+
   if (normalizedRole === 'service_center') {
     try {
       const ServiceCenter = (await import('../../functions/function5-services/serviceCenter.model')).default;
@@ -83,6 +115,15 @@ export const loginUser = async (email: string, password: string): Promise<AuthPa
   if (user.isActive === false) {
     throw Object.assign(
       new Error('Your account has been deactivated. Please contact an administrator.'),
+      { statusCode: 403 }
+    );
+  }
+
+  // Doctor verification check
+  const normalizedRole = (user.role as string).toLowerCase();
+  if (normalizedRole === 'veterinarian' && user.isVerified === false) {
+    throw Object.assign(
+      new Error('Your account is pending verification. Please wait for admin verification before signing in. Contact admin at admin@gmail.com, no-0770101999.'),
       { statusCode: 403 }
     );
   }
@@ -177,3 +218,28 @@ export const updateUserRole = async (
 
   return toUserResponse(user);
 };
+
+export const setDoctorVerification = async (
+  targetUserId: string,
+  isVerified: boolean
+): Promise<IUserResponse> => {
+  const user = await User.findByIdAndUpdate(
+    targetUserId,
+    { isVerified },
+    { new: true, runValidators: true }
+  );
+
+  if (!user) {
+    throw Object.assign(new Error('User not found.'), { statusCode: 404 });
+  }
+
+  try {
+    const Veterinarian = (await import('../../functions/function2-veterinarians/veterinarian.model')).default;
+    await Veterinarian.findOneAndUpdate({ userId: targetUserId }, { isVerified });
+  } catch (e) {
+    console.error('Failed to update Veterinarian verification status:', e);
+  }
+
+  return toUserResponse(user);
+};
+
