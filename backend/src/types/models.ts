@@ -65,6 +65,8 @@ export interface IUser extends Document {
   phone: string | null;
   role: UserRole;
   isActive: boolean;
+  isVerified: boolean;
+  regNo: string | null;
   profileImage: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -78,6 +80,8 @@ export interface IUserResponse {
   phone: string | null;
   role: UserRole;
   isActive: boolean;
+  isVerified: boolean;
+  regNo: string | null;
   profileImage: string | null;
   createdAt: Date;
 }
@@ -126,6 +130,8 @@ export interface IVeterinarian extends Document {
   typesOfCare: string | null;
   consultationFee: number;
   availability: IAvailabilitySlot[];
+  regNo?: string | null;
+  isVerified?: boolean;
   profileImage: string | null;
   description: string | null;
   createdAt: Date;
@@ -263,6 +269,8 @@ export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse;
 export interface AuthPayload {
   user: IUserResponse;
   token: string;
+  pendingVerification?: boolean;
+  message?: string;
 }
 
 // ─── JWT Decoded Payload ──────────────────────────────────────
